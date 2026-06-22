@@ -1,0 +1,12 @@
+{
+  "globs": [
+    "notes/**/*.{md,markdown}"
+  ],
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": {
+      "siblings_only": true
+    }
+  }
+}

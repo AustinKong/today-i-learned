@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+npm run export:excalidraw
+npm run lint:md:fix

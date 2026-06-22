@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "export:excalidraw": "node scripts/export-excalidraw.mjs",
+    "lint:md": "markdownlint-cli2",
+    "lint:md:fix": "markdownlint-cli2 --fix"
+  },
+  "devDependencies": {
+    "@moona3k/excalidraw-export": "^0.2.1",
+    "markdownlint-cli2": "^0.22.1"
+  }
+}
