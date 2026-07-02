@@ -1,0 +1,148 @@
+# Write Ahead Logging
+
+Write-Ahead Logging (WAL) is a protocol used by many database systems to guarantee atomicity and durability while improving write performance.
+
+The protocol requires that every modification be written to a durable append-only log before the corresponding database page is written to its final location on disk. This append-only log is called the write-ahead log (or transaction log).
+
+> In many database systems (and this note), "WAL" is used interchangeably to desribe both the protocol (write-ahead logging) and the log itself (write-ahead log.)
+
+The main benefits of write-ahead logging are:
+
+- Durability: Committed transactions can be recovered even if the database crashes.
+- Crash recovery: The database can replay the write-ahead log after a crash to restore committed changes.
+Performance: Changes are written to a sequential append-only log instead of requiring random writes to the main database files.
+- Replication: Write-ahead log can be streamed to replicas, allowing them to replay the same changes and stay synchronized with the primary database.
+
+## WAL Records
+
+A common misconception is that a write-ahead log stores SQL statements. In practice, most database systems record low-level storage operations instead.
+
+By the time a WAL record is generated, the SQL statement has already been parsed, planned, and executed. The storage engine only needs enough information to reproduce the resulting modifications during recovery.
+
+For example, consider the statement:
+
+```SQL
+UPDATE users
+SET age = 30
+WHERE id = 42;
+```
+
+The WAL record in PostgreSQL conceptually looks like:
+
+```text
+LSN
+Transaction ID
+
+Resource Manager: Heap
+Operation: Heap Update
+
+Relation: users
+Page: 500
+Tuple Offset: 2
+
+Payload: data bytes
+
+CRC checksum
+```
+
+The Log Sequence Number (LSN) is a monotonoically increasing unique identifier for every WAL record. This will be useful in the "Checkpointing" section later.
+
+The Cyclic Redundancy Check (CRC) checksum, is used to detect corrupted WAL records during recovery. We will describe this in a later section as well.
+
+Conceptually, the "Resource Manager" and "Operation" fields can be thought of as a single "Operation" field, this is just a PostgreSQL specific implementation detail that it's split. [More info can be found here.](https://www.interdb.jp/pg/pgsql09/04.html)
+
+> The exact contents of a WAL record vary between storage engines. PostgreSQL primarily records low-level storage operations, while SQLite's WAL stores complete modified page images.
+
+## Writing to WAL
+
+When a transaction modifies data, the storage engine first generates one or more WAL records describing the modification. These records are appended to an in-memory WAL buffer.
+
+When the transaction commits, the WAL buffer is flushed to the write-ahead log on disk. Only after this succeeds can the transaction be considered committed.
+
+The modified database pages themselves are not written immediately. Instead, they remain in-memory and are written back later by a background process during checkpointing.
+
+The write path is therefore:
+
+![Writing to WAL](./assets/writing-to-wal.svg)
+
+The WAL buffer is flushed to WAL whenever (for PostgreSQL):
+
+- A running transaction commits or aborts.
+- The WAL buffer becomes full.
+- A WAL writer process writes periodically.
+
+> Why do we still write to in-memory database page if we write to WAL anyways? Because database page holds the current state, WAL holds history. If we get rid of in-memory database pages entirely, and read state from WAL, we have just reinvented LSM trees.
+
+## Checkpointing
+
+After a transaction commits, its modifications are durable because the write-ahead log has been flushed. However, the modified database pages may still exist only in-memory. Checkpointing is the process of writing these dirty pages back to the main database files.
+
+A checkpoint also records the location in the WAL at the moment it (checkpointing) begins, regardless if the database is in the middle of a transaction. This location is called the REDO point, and is represented by a corresponding LSN.
+
+> Meaning we can record the REDO point directly from the in-memory WAL buffer without reading from the on disk WAL. This works because all earlier WAL records must be flushed before the checkpoint record can be flushed, because the WAL is append-only.
+
+During checkpointing, it does the following:
+
+![Checkpointing](./assets/checkpointing.svg)
+
+> The control metadata only stores a "pointer" to the checkpoint record holding the actual REDO point.
+
+### Full-Page Images
+
+When writing a database page to disk (typically during checkpointing), a crash or power failure may interrupt the write, leaving only part of the page updated. This is known as a torn page. Recovery can no longer assume that the page on disk represents either the old or the new version.
+
+To protect against torn pages, PostgreSQL logs a full-page image (FPI) to the WAL the first time a page is modified after each checkpoint. If recovery encounters a torn page, it can restore the entire page from the FPI before replaying subsequent WAL records.
+
+Subsequent modifications to the same page only log the normal delta records until the next checkpoint.
+
+## Crash Recovery
+
+If the database crashes before the next checkpoint, some committed modifications may exist only in the write-ahead log. The corresponding database pages on disk may still contain older data.
+
+During startup, the database begins recovery from the REDO point stored in the latest checkpoint. Starting from this LSN, it scans the WAL sequentially and replays each WAL record until it reaches the end of the log.
+
+This replay is applied on to in-memory pages, conceptually:
+
+1. Read control metadata to locate the latest checkpoint record.
+2. Read the checkpoint record to obtain the REDO point.
+3. Replay WAL records starting from the REDO point.
+4. Load pages into memory as needed and apply the WAL records, marking pages as dirty.
+5. Dirty pages are eventually written back to disk via checkpointing.
+
+Modifications belonging to incomplete transactions are replayed but not made visible after recovery, for example:
+
+```SQL
+BEGIN;
+UPDATE A;
+UPDATE B;
+-- Crash
+```
+
+Update A and B are are still replayed to restore the disk state to the exact moment of the crash. However, they are never made visible or are subsequently rolled back:
+
+- In PostgreSQL, the changes are replayed, but the transaction status remains "in-progress/aborted" in the commit log (clog). MVCC rules ensure these changes are invisible to users.
+- In ARIES-style systems, an Undo phase runs after the Redo phase to reverse these uncommitted changes.
+
+Conceptually, WAL itself only records and replays storage modifications. Determining which transactions ultimately become visible is the responsibility of the database's recovery algorithm.
+
+> Recovery is idempotent. If the database crashes during a recovery operation, it can just restart.
+
+## WAL Integrity
+
+We have talked about mechanisms to enforce durabilty for different parts of the database:
+
+- In-memory pages to database files: Write-ahead logging and checkpointing
+- Database page writes: Full-page images protect against torn pages
+
+Another problem is what happens if the database crashes while writing the WAL buffer to WAL.
+
+To detect incomplete or corrupted WAL records, each record stores metadata such as its length and a CRC checksum. During recovery, the database validates each record before replaying it. If a record is truncated or its checksum is invalid, recovery stops at the last valid record.
+
+Conceptually, verifying a WAL record:
+
+1. Read record header
+2. Read length
+3. Decode the remaining bytes based on record
+4. Extract CRC of the record
+5. Compute CRC over the record contents
+6. Compare computed CRC against stored CRC
