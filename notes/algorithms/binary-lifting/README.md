@@ -1,47 +1,125 @@
 # Binary Lifting
 
-A way to answer ancestor-related queries on a tree in O(log n).
+Binary lifting preprocesses a rooted tree so that ancestor queries can be answered in `O(log n)` time.
 
-Most commonly: Given a node `u`, find its `k`-th ancestor.
+The canonical query is: what is the `k`-th ancestor of node `u`? In other words, which node is `k` edges above `u`? The same precomputation is also commonly used to find the lowest common ancestor (LCA) of two nodes.
 
-## Core Idea
+## Idea
 
 ![Binary Lifting](./assets/binary-lifting.svg)
 
-Each node stores references to:
+Instead of storing only each node's parent, store ancestors at power-of-two distances:
 
-* Its parent (1 step up)
-* Its 2nd ancestor (2 steps up)
-* Its 4th ancestor (4 steps up)
-* Its 8th ancestor (8 steps up)
-* etc.
+```text
+up[u][0] = 1st ancestor of u  (its parent)
+up[u][1] = 2nd ancestor of u
+up[u][2] = 4th ancestor of u
+up[u][3] = 8th ancestor of u
+...
+```
 
-To traverse to the `k`-th ancestor node of `u`, keep traversing up the tree with appropriate number of jumps until reaching the `k`-th ancestor (see "Traversing the Table" for more details).
+Any non-negative integer is a sum of powers of two. Therefore, to move `k` steps upward, decompose `k` into its set bits and take the corresponding jumps.
 
-> This is built upon the observation that any integer can be represented by a sum of powers of two.
+For example, `13 = 8 + 4 + 1 = 1101₂`. To find the 13th ancestor, make jumps of 8, 4, and 1 edges.
 
-## Building the Table
+## Building the Jump Table
 
-In practice, build a table `up` where `up[u][j]` is the `2^j`-th ancestor of `u`.
+Let `up[u][j]` be the `2^j`-th ancestor of node `u`. If the tree has `n` nodes, the largest useful jump is less than `n`, so use:
 
-The first column stores each node's parent: `up[u][0] = parent[u]`
+```text
+LOG = ceil(log₂(n)) + 1
+```
 
-Then fill the rest of the table using: `up[u][j] = up[up[u][j - 1]][j - 1]` if the ancestor node exists.
+The first column is given by the tree's parent relation:
 
-> This works because the `2^j`-th ancestor can be reached by taking two consecutive `2^(j-1)` jumps.
+```text
+up[u][0] = parent[u]
+```
 
-## Traversing the Table
+Every later column follows from two half-sized jumps:
 
-Examine the binary representation of `k`. Starting from the least significant bit, for each bit position `j` that is set, jump to `up[u][j]`.
+```text
+up[u][j] = up[up[u][j - 1]][j - 1]
+```
 
-For example, if: `k = 13 = 1101_2`
+This recurrence says that a `2^j`-edge jump is two consecutive `2^(j - 1)`-edge jumps.
 
-Then:
+> Use a sentinel such as `-1` for a nonexistent ancestor. The root's parent is then `-1`, and the recurrence must not index through `-1`.
 
-* Bit 0 is set: Jump up `1` step
-* Bit 2 is set: Jump up `4` steps
-* Bit 3 is set: Jump up `8` steps
+```python
+# Assuming parent[u] = -1 if u has no parent
+def build_jump_table(parent: list[int]) -> list[list[int]]:
+    n = len(parent)
+    log = max(1, n.bit_length())
+    up = [[-1] * log for _ in range(n)]
 
-## Applications
+    for u in range(n):
+        up[u][0] = parent[u]
 
-This precomputation can be used to compute LCA of any two nodes in a tree in O(log n) time.
+    for j in range(1, log):
+        for u in range(n):
+            mid = up[u][j - 1]
+            if mid != -1:
+                up[u][j] = up[mid][j - 1]
+
+    return up
+```
+
+The parent array can be supplied directly, or computed with a DFS/BFS from a chosen root.
+
+## Finding the `k`-th Ancestor
+
+For each set bit `j` of `k`, jump from the current node to `up[u][j]`.
+
+```python
+def kth_ancestor(u: int, k: int, up: list[list[int]]) -> int:
+    log = len(up[0])
+    if k >= 1 << log:
+        return -1
+
+    for j in range(log):
+        if (k >> j) & 1:
+            u = up[u][j]
+            if u == -1:
+                return -1
+
+    return u
+```
+
+For `k = 13 = 1101₂`, this takes the jumps at bit positions `0`, `2`, and `3`: 1, 4, and 8 edges. Their order does not affect the result because every jump follows the same path towards the root.
+
+> A query with `k = 0` returns `u` itself. If `k` is greater than `depth[u]`, the requested ancestor does not exist.
+
+## Lowest Common Ancestor
+
+The lowest common ancestor of `u` and `v` is their deepest shared ancestor.
+
+1. Lift the deeper node until both nodes have the same depth.
+2. If they now match, that node is the LCA.
+3. Otherwise, try jumps from largest to smallest. Whenever the two nodes would land on different ancestors, take that jump for both.
+4. Their parents are now the LCA.
+
+```python
+def lca(u: int, v: int, depth: list[int], up: list[list[int]]) -> int:
+    if depth[u] < depth[v]:
+        u, v = v, u
+
+    u = kth_ancestor(u, depth[u] - depth[v], up)
+    if u == v:
+        return u
+
+    for j in range(len(up[0]) - 1, -1, -1):
+        if up[u][j] != -1 and up[u][j] != up[v][j]:
+            u = up[u][j]
+            v = up[v][j]
+
+    return up[u][0]
+```
+
+## Complexity
+
+| Operation | Time | Space |
+| --- | --- | --- |
+| Build the table | `O(n log n)` | `O(n log n)` |
+| `k`-th ancestor | `O(log n)` | — |
+| LCA | `O(log n)` | — |
