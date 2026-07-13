@@ -136,12 +136,12 @@ So the distinction is:
 
 Let `n` be the number of elements and `m` be the number of operations.
 
-| Optimization                     | Intuition                                       | Worst-case behavior                                          |
-| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| None                             | Trees may become long chains.                   | `find` can be `O(n)`.                                        |
-| Path compression only            | Bad trees are flattened after being accessed.   | Individual `find` can still be expensive before compression. |
-| Union by rank only               | Bad trees are prevented from forming.           | `find` is `O(log n)`.                                        |
-| Union by rank + path compression | Trees are kept shallow and flattened over time. | Amortized `O(α(n))` per operation.                           |
+| Optimization | Intuition | Worst-case behavior |
+| --- | --- | --- |
+| None | Trees may become long chains. | `find` can be `O(n)`. |
+| Path compression only | Bad trees are flattened after being accessed. | Individual `find` can still be expensive before compression. |
+| Union by rank only | Bad trees are prevented from forming. | `find` is `O(log n)`. |
+| Union by rank + path compression | Trees are kept shallow and flattened over time. | Amortized `O(α(n))` per operation. |
 
 `α(n)` is the inverse Ackermann function. For all practical input sizes, it is effectively a very small constant.
 
