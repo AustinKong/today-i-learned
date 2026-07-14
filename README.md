@@ -39,3 +39,5 @@ The hook exports Excalidraw diagrams before running Markdown lint fixes.
 Add darkmode support. Currently the library `exportDiagram` does not disable `background` option. This is to avoid having SVG that has low contrast strokes against dark mode markdown readers, which we instead circumvent by having white background. It may be ugly but the easiest solution right now. This can be solved by tying into the next TODO, since Excalidraw's official library does have dark/light mode exports.
 
 Add serialization/cleanup for `.excalidraw` files using Excalidraw's official [`serializeAsJSON`](https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils#serializeasjson) utility. This should remove app state and deleted components to keep Git diffs stable and minimize file size.
+
+I realize that never using corner rounded rectangles is always cleaner and more readable (i.e. using sharp corner rectangles,) check through old notes to convert corner rounded rectangles into sharp corner rectangles for readability.
