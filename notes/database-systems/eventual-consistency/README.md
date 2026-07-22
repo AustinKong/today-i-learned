@@ -129,7 +129,7 @@ The algorithm above assumes exactly one replica to work, we will now discuss a g
 
 ![Version Vectors](./assets/version-vectors.svg)
 
-A version vector (or version clock) is used to track what each replica has seen. It describes what the current value stored in a replica contains from other replicas.
+A version vector is used to track what each replica has seen. It describes what the current value stored in a replica contains from other replicas.
 
 In the example, version vector of replica A is `[A:2, B:1, C:3, D:1]`, thus the value currently stored in replica A:
 
