@@ -13,7 +13,7 @@ The simplest conflict is one that never occurs.
 
 Conflict avoidance arranges writes so that conflicting operations cannot be accepted independently.
 
-A common conflict-avoidance strategy is single-leader replication: all writes for a partition are routed through one leader, which establishes a single order before changes are replicated to followers.
+A common conflict-avoidance strategy is [[Database Replication|single-leader replication]]: all writes for a partition are routed through one leader, which establishes a single order before changes are replicated to followers.
 
 Conflict avoidance is often preferable when its availability and latency costs are acceptable. It is not always possible in highly available, multi-writer, peer-to-peer, or offline-first systems.
 
@@ -143,7 +143,7 @@ CRDTs provide the following features:
 - An algorithm (itself part of the data type) automatically resolves any inconsistencies that might occur.
 - Although replicas may have different state at any particular point in time, they are guaranteed to eventually converge.
 
-A CRDT normally aims to provide strong eventual consistency.
+A CRDT normally aims to provide [[Eventual Consistency|strong eventual consistency]].
 
 ### State-Based CRDTs
 

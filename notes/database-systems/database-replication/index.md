@@ -16,6 +16,8 @@ Benefits of replication:
 
 > A replica is not necessarily a copy of a "main" database. The primary database is also a replica. "Replica" simply means a node that stores a copy of the replicated data.
 
+Replication delay and independent writers lead to the guarantees discussed in [[Eventual Consistency]] and the reconciliation strategies in [[Write Conflicts]].
+
 ## Synchronous and Asynchronous Replication
 
 ![Synchronous vs Asynchronous Replication](./assets/sync-vs-async-replication.excalidraw)
@@ -161,7 +163,7 @@ To repair replicas A and B, we aim to identify that `id_1` differs, `id_2` exist
 
 A naive approach would compare every row between two replicas, but this is expensive.
 
-A common optimization is to use Merkle trees. Each replica builds a Merkle tree over the same key ranges. Each leaf summarizes a small range of rows, and each parent summarizes its child ranges.
+A common optimization is to use [[Merkle Tree|Merkle trees]]. Each replica builds a Merkle tree over the same key ranges. Each leaf summarizes a small range of rows, and each parent summarizes its child ranges.
 
 To compare two replicas:
 
@@ -229,7 +231,7 @@ However, statement-based replication has problems with nondeterministic operatio
 
 ### WAL Shipping
 
-In write-ahead log shipping, the database sends WAL records to followers. This can be efficient because the database already writes WAL for durability and crash recovery.
+In [[Write Ahead Logging|write-ahead log]] shipping, the database sends WAL records to followers. This can be efficient because the database already writes WAL for durability and crash recovery.
 
 This is a physical replication method. The problem is that the WAL describes data at a very low level, making replication coupled to the database's storage format.
 

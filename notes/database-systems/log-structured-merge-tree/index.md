@@ -68,7 +68,7 @@ When a new key-value pair is written:
 4. Later, flush the memtable to disk as an SSTable.
 5. Later still, compact SSTables in the background.
 
-The write-ahead log is used for durability. If the process crashes before the memtable is flushed to disk, the storage engine can replay the log and rebuild the memtable.
+The [[Write Ahead Logging|write-ahead log]] is used for durability. If the process crashes before the memtable is flushed to disk, the storage engine can replay the log and rebuild the memtable.
 
 ## Deletes and Tombstones
 

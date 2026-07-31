@@ -122,9 +122,9 @@ When a write arrives with version N:
 4. The server assigns a new version number (current version number + 1) to the new value.
 5. The server returns all current sibling values to the client. (This step can be skipped if we ensure client always reads before writing.)
 
-This algorithm identifies causal dependencies but still requires a conflict resolution method in the client.
+This algorithm identifies causal dependencies but still requires one of the resolution strategies in [[Write Conflicts]].
 
-> This algorithm can be seen in the "Causality Example 1" sequence diagram above. This algorithm requires database to store one or more current values because we assume conflict resolution is done at application layer. If we used database layer conflict resolution methods like CRDTs instead, we only need to store only value.
+> This algorithm can be seen in the "Causality Example 1" sequence diagram above. It stores one or more current values because conflict resolution is assumed to happen in the application. Database-layer approaches such as CRDTs can resolve those values within the data type instead.
 
 ### Version Vectors
 
@@ -157,3 +157,5 @@ Strong eventual consistency is a stronger form of eventual consistency. It requi
 1. Eventual delivery: Every update made at one non-faulty replica is eventually delivered to every other non-faulty replica.
 
 2. Convergence: Any two replicas that have processed the same set of updates are in the same state, even if they processed those updates in different orders.
+
+CRDTs are one way to obtain this property; see [[Write Conflicts]].

@@ -7,6 +7,8 @@ category: Operating Systems
 
 Concurrency is the broader problem of managing multiple tasks whose execution overlaps in time. This encapsulates both interleaving execution (switching between tasks) and parallel execution (running tasks simultaneously on different cores.)
 
+When concurrent tasks access the same mutable object, [[Shared Mutation]] is what makes their interleavings observable and potentially unsafe.
+
 > "Concurrency is about dealing with lots of things at once. Parallelism is about doing lots of things at once." - Rob Pike
 
 ## Interleaving Execution

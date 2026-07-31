@@ -13,8 +13,8 @@ The main benefits of write-ahead logging are:
 
 - Durability: Committed transactions can be recovered even if the database crashes.
 - Crash recovery: The database can replay the write-ahead log after a crash to restore committed changes.
-Performance: Changes are written to a sequential append-only log instead of requiring random writes to the main database files.
-- Replication: Write-ahead log can be streamed to replicas, allowing them to replay the same changes and stay synchronized with the primary database.
+- Performance: Changes are written to a sequential append-only log instead of requiring random writes to the main database files.
+- [[Database Replication|Replication]]: The log can be streamed to replicas, allowing them to replay the same changes and stay synchronized with the primary database.
 
 ## WAL Records
 
@@ -24,7 +24,7 @@ By the time a WAL record is generated, the SQL statement has already been parsed
 
 For example, consider the statement:
 
-```SQL
+```sql
 UPDATE users
 SET age = 30
 WHERE id = 42;
@@ -74,7 +74,7 @@ The WAL buffer is flushed to WAL whenever (for PostgreSQL):
 - The WAL buffer becomes full.
 - A WAL writer process writes periodically.
 
-> Why do we still write to in-memory database page if we write to WAL anyways? Because database page holds the current state, WAL holds history. If we get rid of in-memory database pages entirely, and read state from WAL, we have just reinvented LSM trees.
+> Why do we still write to an in-memory database page if we write to WAL anyway? Because the database page holds current state, while WAL holds history. A storage engine that treats its log as the source of data begins to resemble a [[Log-Structured Merge-Tree|log-structured merge-tree]].
 
 ## Checkpointing
 
@@ -114,7 +114,7 @@ This replay is applied on to in-memory pages, conceptually:
 
 Modifications belonging to incomplete transactions are replayed but not made visible after recovery, for example:
 
-```SQL
+```sql
 BEGIN;
 UPDATE A;
 UPDATE B;

@@ -10,6 +10,9 @@ Also known as a hash tree. It is a tree data structure that labels nodes with cr
 - Leaf node: Labelled with hash of a data block
 - Inner node: Labelled with hash of the labels of child nodes
 
+<!-- TODO: Link to Cryptographic Hash functions note when ready -->
+For the general mechanics and properties of hash functions, see [[Hashing]]. Merkle trees specifically require cryptographic hash functions.
+
 Merkle trees don't need to be binary, and inner nodes could also store data blocks. The concatenation function just needs to be able to handle these.
 
 > In general, our hashing process can be described as `label = h(f(left, right))`. Note that the most common/universal combining function is simply concatenation: `f(A, B) = A || B`, although any combining function `f` is possible, provided they preserve the desired security properties. `h` is the hash function.
