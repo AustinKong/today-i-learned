@@ -1,2 +1,4 @@
 node_modules
 .obsidian
+notes/**/*.generated.svg
+notes/**/*.generated.svg.tmp

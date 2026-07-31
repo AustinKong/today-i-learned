@@ -1,4 +1,7 @@
-# Union Find Disjoint Set
+---
+title: Union Find Disjoint Set
+category: Data Structures
+---
 
 Union-Find Disjoint Set (UFDS), also known as Disjoint Set Union (DSU), is a data structure for maintaining a collection of disjoint sets.
 
@@ -44,7 +47,7 @@ def find(self, x):
 
 For example, given:
 
-![Path compression](./assets/path-compression.svg)
+![Path compression](./assets/path-compression.excalidraw)
 
 Path compression does not avoid the cost of walking to the root the first time. It only makes future queries cheaper. It fixes bad trees after we access them, but it does not prevent bad trees from forming in the first place.
 

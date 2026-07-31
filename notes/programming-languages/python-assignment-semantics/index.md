@@ -1,4 +1,7 @@
-# Python Assignment Semantics
+---
+title: Python Assignment Semantics
+category: Programming Languages
+---
 
 In Python, assignment has a few quirks to take note of, especially for tuple assignment:
 
@@ -24,7 +27,7 @@ curr, prev, curr.next = curr.next, curr, prev
 
 Consider case 3, the interpreter first snapshots RHS to produce `temp1, temp2, temp3 = (curr, curr.next, prev)`. Then, it does assignment left-to-right:
 
-![Linked List](./assets/linked-list.svg)
+![Linked List](./assets/linked-list.excalidraw)
 
 Rule of thumb: When in doubt, write out line-by-line instead of relying on tuple assignment.
 

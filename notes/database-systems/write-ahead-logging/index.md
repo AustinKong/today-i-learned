@@ -1,4 +1,7 @@
-# Write Ahead Logging
+---
+title: Write Ahead Logging
+category: Database Systems
+---
 
 Write-Ahead Logging (WAL) is a protocol used by many database systems to guarantee atomicity and durability while improving write performance.
 
@@ -63,7 +66,7 @@ The modified database pages themselves are not written immediately. Instead, the
 
 The write path is therefore:
 
-![Writing to WAL](./assets/writing-to-wal.svg)
+![Writing to WAL](./assets/writing-to-wal.excalidraw)
 
 The WAL buffer is flushed to WAL whenever (for PostgreSQL):
 
@@ -83,7 +86,7 @@ A checkpoint also records the location in the WAL at the moment it (checkpointin
 
 During checkpointing, it does the following:
 
-![Checkpointing](./assets/checkpointing.svg)
+![Checkpointing](./assets/checkpointing.excalidraw)
 
 > The control metadata only stores a "pointer" to the checkpoint record holding the actual REDO point.
 

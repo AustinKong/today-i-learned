@@ -1,6 +1,9 @@
-# Concurrency
+---
+title: Concurrency
+category: Operating Systems
+---
 
-![Concurrency, Interleaved vs Parallel](./assets/concurrency-interleaving-parallelism.svg)
+![Concurrency, Interleaved vs Parallel](./assets/concurrency-interleaving-parallelism.excalidraw)
 
 Concurrency is the broader problem of managing multiple tasks whose execution overlaps in time. This encapsulates both interleaving execution (switching between tasks) and parallel execution (running tasks simultaneously on different cores.)
 

@@ -1,4 +1,7 @@
-# Shared Mutation
+---
+title: Shared Mutation
+category: Programming Languages
+---
 
 ## Aliasing
 
@@ -112,7 +115,7 @@ Deep copy can provide value-like independence because the copied object graph no
 
 ### Lazy Copy
 
-![Lazy Copy](./assets/lazy-copy.svg)
+![Lazy Copy](./assets/lazy-copy.excalidraw)
 
 Lazy copy delays copying until the copy is actually needed. The most common form is copy-on-write.
 
@@ -209,7 +212,7 @@ This usually shows up together with immutability or persistent data structures. 
 
 Consider this example of structural sharing in the context of a binary-tree:
 
-![Structural Sharing](./assets/structural-sharing.svg)
+![Structural Sharing](./assets/structural-sharing.excalidraw)
 
 Structural sharing can also appear outside classic persistent data structures. For example, TanStack Query uses structural sharing as a UI optimization. When fresh JSON data arrives, parsing would normally create a new object graph. React Query tries to preserve references to unchanged parts, so components depending on unchanged data do not see unnecessary reference changes. [Source](https://tanstack.com/query/v5/docs/framework/react/guides/render-optimizations)
 

@@ -1,6 +1,9 @@
-# Log-Structured Merge-Tree
+---
+title: Log-Structured Merge-Tree
+category: Database Systems
+---
 
-![Log-Structured Merge-Tree](./assets/lsm-tree.svg)
+![Log-Structured Merge-Tree](./assets/lsm-tree.excalidraw)
 
 A log-structured merge-tree, or LSM tree, is a storage engine design for maintaining sorted key-value data. It is optimized for write-heavy workloads by turning random writes into mostly sequential writes.
 
@@ -27,7 +30,7 @@ In the context of LSM trees, the term "segment" refers to a file containing a se
 
 We can use binary search to efficiently search in an SSTable, but this only works well with fixed-size records. For variable-length records, the physical byte position does not map cleanly to the logical record position, making binary search produce skewed results leading to worse than `O(log n)` complexity.
 
-![SSTable Binary Search](./assets/sstable-binary-search.svg)
+![SSTable Binary Search](./assets/sstable-binary-search.excalidraw)
 
 > Note that binary search is not impossible with variable-length records, it just requires extra metadata.
 
@@ -35,7 +38,7 @@ We can use binary search to efficiently search in an SSTable, but this only work
 
 Instead of binary searching raw records directly, many systems use indexes and block metadata. A single SSTable is divided into blocks (typically few KB in size,) a sparse index can point to the beginning of a block.
 
-![SSTable Block Index](./assets/sstable-block-index.svg)
+![SSTable Block Index](./assets/sstable-block-index.excalidraw)
 
 Searching across the entire SSTable is as follows:
 
@@ -105,7 +108,7 @@ This helps reduce unnecessary disk reads during point lookups.
 
 ## Compaction
 
-![Compaction](./assets/compaction.svg)
+![Compaction](./assets/compaction.excalidraw)
 
 Compaction is the background process of merging SSTables. It does:
 
@@ -127,7 +130,7 @@ Compaction can be done in different ways. Two common strategies are tiered compa
 
 ### Tiered Compaction
 
-![Tiered Compaction](./assets/tiered-compaction.svg)
+![Tiered Compaction](./assets/tiered-compaction.excalidraw)
 
 In tiered compaction, the storage engine allows multiple SSTables of similar sizes to accumulate into tiers (sometimes also referred to as "levels" or "runs"). Once there are enough of them in a tier, it merges them together into a larger SSTable.
 
@@ -139,7 +142,7 @@ Tiered compaction is generally more write-friendly because data is rewritten les
 
 ### Leveled Compaction
 
-![Leveled Compaction](./assets/leveled-compaction.svg)
+![Leveled Compaction](./assets/leveled-compaction.excalidraw)
 
 In leveled compaction, SSTables are organized into levels. Unlike tiered compaction, where within a tier, key ranges could overlap heavily; leveled compaction enforces that within a level, key ranges should mostly not overlap.
 

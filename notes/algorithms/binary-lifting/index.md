@@ -1,4 +1,7 @@
-# Binary Lifting
+---
+title: Binary Lifting
+category: Algorithms
+---
 
 Binary lifting preprocesses a rooted tree so that ancestor queries can be answered in `O(log n)` time.
 
@@ -6,7 +9,7 @@ The canonical query is: what is the `k`-th ancestor of node `u`? In other words,
 
 ## Idea
 
-![Binary Lifting](./assets/binary-lifting.svg)
+![Binary Lifting](./assets/binary-lifting.excalidraw)
 
 Instead of storing only each node's parent, store ancestors at power-of-two distances:
 

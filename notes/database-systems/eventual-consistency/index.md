@@ -1,4 +1,7 @@
-# Eventual Consistency
+---
+title: Eventual Consistency
+category: Database Systems
+---
 
 Eventual consistency is a consistency model where different replicas, caches, indexes, or derived views are allowed to temporarily disagree.
 
@@ -19,7 +22,7 @@ Stale reads are allowed under eventual consistency. This is a tradeoff we accept
 
 ### Read Your Own Writes
 
-![Without Read After Write](./assets/without-read-after-write.svg)
+![Without Read After Write](./assets/without-read-after-write.excalidraw)
 
 Read-your-own-writes consistency (or read-after-write consistency) means that after a user writes some data, that same user should be able to read their own update.
 
@@ -48,7 +51,7 @@ This avoids always reading from the leader, but it requires the system to know h
 
 ### Monotonic Reads
 
-![Without Monotonic Reads](./assets/without-monotonic-reads.svg)
+![Without Monotonic Reads](./assets/without-monotonic-reads.excalidraw)
 
 Monotonic reads means that once a user has seen a certain version of data, they should not later see an older version. Without monotonic reads, time appears to move backward.
 
@@ -64,7 +67,7 @@ This is similar to the read-your-own-writes strategy, but instead of tracking on
 
 ### Consistent Prefix Reads
 
-![Without Consistent Prefix Reads](./assets/without-consistent-prefix-reads.svg)
+![Without Consistent Prefix Reads](./assets/without-consistent-prefix-reads.excalidraw)
 
 Consistent prefix reads means that if writes happen in a certain order, readers should not observe a later write without also seeing the earlier writes that it depends on.
 
@@ -127,7 +130,7 @@ This algorithm identifies causal dependencies but still requires a conflict reso
 
 The algorithm above assumes exactly one replica to work, we will now discuss a general solution to the algorithm that works for many replicas accepting writes independently.
 
-![Version Vectors](./assets/version-vectors.svg)
+![Version Vectors](./assets/version-vectors.excalidraw)
 
 A version vector is used to track what each replica has seen. It describes what the current value stored in a replica contains from other replicas.
 

@@ -1,4 +1,7 @@
-# Hashing
+---
+title: Hashing
+category: Algorithms
+---
 
 This note explains non-cryptographic or general-purpose hashing.
 

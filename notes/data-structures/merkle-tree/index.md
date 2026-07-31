@@ -1,6 +1,9 @@
-# Merkle Tree
+---
+title: Merkle Tree
+category: Data Structures
+---
 
-![Merkle Tree](./assets/merkle-tree.svg)
+![Merkle Tree](./assets/merkle-tree.excalidraw)
 
 Also known as a hash tree. It is a tree data structure that labels nodes with cryptographic hashes:
 

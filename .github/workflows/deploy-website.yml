@@ -1,0 +1,29 @@
+name: Deploy website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - notes/**
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Request website deployment
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+          TIL_SHA: ${{ github.sha }}
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/AustinKong/website/dispatches \
+            --data "{\"event_type\":\"til-updated\",\"client_payload\":{\"sha\":\"${TIL_SHA}\"}}"

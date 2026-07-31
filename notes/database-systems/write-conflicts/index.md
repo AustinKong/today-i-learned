@@ -1,4 +1,7 @@
-# Write Conflicts
+---
+title: Write Conflicts
+category: Database Systems
+---
 
 A write conflict occurs when multiple actors update the same logical data without first coordinating with one another.
 

@@ -1,4 +1,7 @@
-# Database Replication
+---
+title: Database Replication
+category: Database Systems
+---
 
 Database replication is the process of keeping copies of the same data on multiple machines connected over a network.
 
@@ -15,7 +18,7 @@ Benefits of replication:
 
 ## Synchronous and Asynchronous Replication
 
-![Synchronous vs Asynchronous Replication](./assets/sync-vs-async-replication.svg)
+![Synchronous vs Asynchronous Replication](./assets/sync-vs-async-replication.excalidraw)
 
 In synchronous replication, the leader waits for at least one follower to confirm that it has received the write before reporting success to the client.
 
@@ -34,7 +37,7 @@ This gives the system at least two up-to-date copies of committed data without r
 
 ## Single-Leader Replication
 
-![Single-Leader Replication](./assets/single-leader-replication.svg)
+![Single-Leader Replication](./assets/single-leader-replication.excalidraw)
 
 In single-leader replication (or active-passive replication, master-slave replication) one replica is designated as the leader.
 
@@ -78,7 +81,7 @@ Automatic failover usually requires some form of coordination or consensus, othe
 
 ## Multi-Leader Replication
 
-![Multi-Leader Replication](./assets/multi-leader-replication.svg)
+![Multi-Leader Replication](./assets/multi-leader-replication.excalidraw)
 
 In multi-leader replication, more than one replica can accept writes. Each leader processes local writes and replicates those writes to the other leaders.
 
@@ -94,7 +97,7 @@ The main benefits are:
 
 ### Multi-Leader Topologies
 
-![Multi-Leader Topologies](./assets/multi-leader-topologies.svg)
+![Multi-Leader Topologies](./assets/multi-leader-topologies.excalidraw)
 
 Common topologies include circular, star, and all-to-all topologies.
 
@@ -108,7 +111,7 @@ Conceptually, the record can have a "seen-by" set consisting of replica IDs. If 
 
 ## Leaderless Replication
 
-![Leaderless Replication](./assets/leaderless-replication.svg)
+![Leaderless Replication](./assets/leaderless-replication.excalidraw)
 
 In leaderless replication, there is no special leader that accepts all writes. Instead, a write (and also read) is sent to multiple replicas.
 
@@ -128,7 +131,7 @@ The difference between multi-leader and leaderless is that the write is accepted
 
 ### Read Repair
 
-![Read Repair](./assets/read-repair.svg)
+![Read Repair](./assets/read-repair.excalidraw)
 
 In leaderless replication, replicas may become inconsistent.
 
@@ -174,7 +177,7 @@ This avoids transferring the entire dataset just to find a small number of diffe
 
 ### Quorum Consistency
 
-![Quorum Consistency](./assets/quorum-consistency.svg)
+![Quorum Consistency](./assets/quorum-consistency.excalidraw)
 
 Leaderless systems often use quorum reads and writes. Let `n` be the number of replicas, `w` be the number of replicas that must acknowledge a write, `r` be the number of replicas queried for a read.
 
@@ -202,7 +205,7 @@ One may even set `w + r <= n` as needed.
 
 ### Sloppy Quorum
 
-![Sloppy Quorum](./assets/sloppy-quorum.svg)
+![Sloppy Quorum](./assets/sloppy-quorum.excalidraw)
 
 In normal quorum replication, a key has `n` intended replicas. These are sometimes called the key's home replicas.
 
