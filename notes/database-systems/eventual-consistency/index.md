@@ -101,7 +101,7 @@ Their causal dependency graph is as follows:
 
 ![Causality Graph](./assets/ddia-causal-dependency-example-2.jpg)
 
-We define two writes to be concurrent if neither write happens-before the other. These writes may not even overlap in time, but are still "concurrent".
+We define two writes to be [[Concurrency|concurrent]] if neither write happens-before the other. These writes may not even overlap in time, but are still "concurrent".
 
 ### Simple Algorithm to Detect Causal Dependency
 
