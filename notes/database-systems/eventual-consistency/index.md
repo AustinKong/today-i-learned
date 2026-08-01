@@ -22,7 +22,26 @@ Stale reads are allowed under eventual consistency. This is a tradeoff we accept
 
 ### Read Your Own Writes
 
-![Without Read After Write](./assets/without-read-after-write.excalidraw)
+```mermaid
+---
+caption: "Without read-after-write consistency"
+---
+sequenceDiagram
+    autonumber
+    actor User
+    participant Leader as Leader Replica
+    participant Follower as Follower Replica
+
+    Note over Leader,Follower: Initial value = "Alice"
+
+    User->>Leader: Update value = "Bob"
+    Leader-->>User: Write acknowledged
+
+    User->>Follower: Read value
+    Follower-->>User: Return stale value = "Alice"
+
+    Leader-)Follower: Asynchronous replication
+```
 
 Read-your-own-writes consistency (or read-after-write consistency) means that after a user writes some data, that same user should be able to read their own update.
 
@@ -51,7 +70,30 @@ This avoids always reading from the leader, but it requires the system to know h
 
 ### Monotonic Reads
 
-![Without Monotonic Reads](./assets/without-monotonic-reads.excalidraw)
+```mermaid
+---
+caption: "Without monotonic reads"
+---
+sequenceDiagram
+    autonumber
+    actor User1 as User 1
+    actor User2 as User 2
+    participant Leader as Leader Replica
+    participant Follower as Follower Replica
+
+    Note over Leader,Follower: Initial comment = NULL
+
+    User1->>Leader: Insert comment = "..."
+    Leader-->>User1: OK
+
+    User2->>Leader: Read value
+    Leader-->>User2: Return comment = "..."
+
+    User2->>Follower: Read value
+    Follower-->>User2: Return comment = NULL
+
+    Leader-)Follower: Asynchronous replication
+```
 
 Monotonic reads means that once a user has seen a certain version of data, they should not later see an older version. Without monotonic reads, time appears to move backward.
 
@@ -67,7 +109,37 @@ This is similar to the read-your-own-writes strategy, but instead of tracking on
 
 ### Consistent Prefix Reads
 
-![Without Consistent Prefix Reads](./assets/without-consistent-prefix-reads.excalidraw)
+```mermaid
+---
+caption: "Without consistent prefix reads"
+---
+sequenceDiagram
+    autonumber
+    actor User1
+    participant P1 as Partition 1 Leader [1]
+    participant P2 as Partition 2 Leader [2]
+    actor User2
+    actor User3
+
+    Note over P1,P2: Initial messages = []
+
+    User1->>P1: Append message "how are you?"
+    P1-->>User1: OK
+
+    User2->>P1: Read messages
+    P1-->>User2: ["how are you?"]
+
+    User2->>P2: Append message "fine thank you!"
+    P2-->>User2: OK
+
+    User3->>P2: Read messages
+    P2-->>User3: ["fine thank you!"]
+    User3->>P1: Read messages
+    P1-->>User3: ["how are you?", "fine thank you!"]
+```
+
+> [1] Stores messages for odd-numbered user IDs.  
+> [2] Stores messages for even-numbered user IDs.
 
 Consistent prefix reads means that if writes happen in a certain order, readers should not observe a later write without also seeing the earlier writes that it depends on.
 

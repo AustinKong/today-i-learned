@@ -20,7 +20,31 @@ Replication delay and independent writers lead to the guarantees discussed in [[
 
 ## Synchronous and Asynchronous Replication
 
-![Synchronous vs Asynchronous Replication](./assets/sync-vs-async-replication.excalidraw)
+```mermaid
+---
+caption: "Synchronous vs asynchronous replication"
+---
+sequenceDiagram
+    autonumber
+    actor User
+    participant Leader
+    participant Follower1 as Follower 1
+    participant Follower2 as Follower 2
+
+    Note over User,Follower2: Synchronous replication
+    User->>Leader: Write request
+    Leader->>Follower1: Replicate write
+    Follower1-->>Leader: OK
+    Leader-->>User: OK
+
+    Note over User,Follower2: Asynchronous replication
+    User->>Leader: Write request
+    Leader-->>User: OK
+    Leader-)Follower1: Replicate write
+    Leader-)Follower2: Replicate write
+    Follower1-->>Leader: OK
+    Follower2-->>Leader: OK
+```
 
 In synchronous replication, the leader waits for at least one follower to confirm that it has received the write before reporting success to the client.
 
@@ -133,7 +157,37 @@ The difference between multi-leader and leaderless is that the write is accepted
 
 ### Read Repair
 
-![Read Repair](./assets/read-repair.excalidraw)
+```mermaid
+---
+caption: "Read repair"
+---
+sequenceDiagram
+    autonumber
+    actor Client
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+    participant R3 as Replica 3
+
+    Note over Client,R3: 1) Write the newer value
+    Client->>R1: Write value = 2
+    R1-->>Client: OK
+    Client->>R2: Write value = 2
+    R2-->>Client: OK
+    Client->>R3: Write value = 2
+    R3--xClient: Write fails
+
+    Note over Client,R3: 2) Read from multiple replicas
+    Client->>R1: Read
+    R1-->>Client: Value = 2
+    Client->>R2: Read
+    R2-->>Client: Value = 2
+    Client->>R3: Read (stale)
+    R3-->>Client: Value = 1
+
+    Note over Client,R3: 3) Read repair
+    Client->>R3: Read repair: write value = 2
+    R3-->>Client: Repaired value = 2
+```
 
 In leaderless replication, replicas may become inconsistent.
 
@@ -207,7 +261,30 @@ One may even set `w + r <= n` as needed.
 
 ### Sloppy Quorum
 
-![Sloppy Quorum](./assets/sloppy-quorum.excalidraw)
+```mermaid
+---
+caption: "Sloppy quorum"
+---
+sequenceDiagram
+    autonumber
+    actor Client
+    participant H1 as Home replica 1
+    participant H2 as Home replica 2
+    participant O1 as Other replica
+
+    Note over Client,H2: Home replicas
+    Client->>H1: Write
+    H1-->>Client: 1) Write success
+    Client->>H2: Write
+    H2--xClient: 1) Fail
+
+    Note over Client,O1: Write to another healthy replica
+    Client->>O1: 2) Write success
+    O1-->>Client: Acknowledge
+
+    Note over O1,H2: 3) Hinted handoff when a home replica recovers
+    O1->>H2: Forward hinted write
+```
 
 In normal quorum replication, a key has `n` intended replicas. These are sometimes called the key's home replicas.
 
