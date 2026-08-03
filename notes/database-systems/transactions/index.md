@@ -425,9 +425,9 @@ This only became feasible fairly recently due to two developments:
 1. RAM became cheap enough to keep the entire active dataset in memory.
 2. Database designers realized OLTP transactions are short enough to run serially; long-running OLAP transactions are typically read-only and can be run on a consistent snapshot outside the serial execution loop.
 
-Systems with single-threaded serial transaction processing don't allow multi-statement transactions. Instead, the application must submit the entire transaction code ahead of time, as a stored procedure.
+Systems with single-threaded serial transaction processing don't allow multi-statement (interactive) transactions. Instead, the application must submit the entire transaction code ahead of time, as a stored procedure.
 
-> The reason stored procedures are required is because multi-statement transactions have to pause the execution thread in between statements, waiting for the application, then resume later. That defeats the purpose of serial execution because the single thread would spend most of its time idle waiting for clients.
+> The reason is because multi-statement (interactive) transactions have to pause the execution thread in between statements, waiting for the application, then resume later. That defeats the purpose of serial execution because the single thread would spend most of its time idle waiting for clients. More importantly, stored procedures mitigate the idle network delay of the application server sending SQL to the database, by keeping the SQL on the database in the first place, and only sending the input parameters over the network.
 
 To improve database transaction throughput, one technique is to run read-only transactions using snapshot isolation outside the serial execution loop.
 
