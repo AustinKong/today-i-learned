@@ -7,9 +7,9 @@ This note explains non-cryptographic or general-purpose hashing.
 
 A hash function is a deterministic function that maps an input of arbitrary size to a fixed-size value called a hash (or hash value).
 
-```text
-fixed-size hash = hash_function(arbitrary-length input)
-```
+$$
+\text{fixed-size hash} = \operatorname{hash\_function}(\text{arbitrary-length input})
+$$
 
 Since an infinite number of possible inputs are mapped to a finite number of outputs, different inputs must sometimes produce the same hash. This phenomenon is known as a collision.
 
@@ -44,7 +44,7 @@ Hash functions are deterministic by definition, which is incompatible with rando
 
 Even a perfectly uniform hash function cannot eliminate collisions.
 
-This follows directly from the pigeonhole principle: if n items are put into m containers, with n > m, then at least one container must contain more than one item.
+This follows directly from the pigeonhole principle: if $n$ items are put into $m$ containers, with $n > m$, then at least one container must contain more than one item.
 
 Likewise, an unlimited number of possible inputs cannot be mapped uniquely into a finite number of hash values.
 
@@ -54,9 +54,9 @@ In probability theory, the birthday problem asks for the probability that, in a 
 
 The birthday paradox is the counterintuitive fact that only 23 people are needed for that probability to exceed 50%.
 
-Similarly, for a hash function with an output space of size n, collisions become likely after approximately `sqrt(n)` randomly chosen inputs.
+Similarly, for a hash function with an output space of size $n$, collisions become likely after approximately $\sqrt{n}$ randomly chosen inputs.
 
-> More precisely, a 50% chance of collision occurs after approximately `1.177 sqrt(n)` or `sqrt(2n * ln(2))`.
+> More precisely, a 50% chance of collision occurs after approximately $1.177\sqrt{n}$ or $\sqrt{2n\ln 2}$ inputs.
 
 #### Perfect Hash Functions
 
@@ -104,12 +104,12 @@ Historically, many hash functions chose odd prime constants because they exhibit
 
 Seeds are used to initialize the hash state. Use cases include:
 
-- Preventing hash-flooding attacks: Suppose an attacker knows your hash function, and can deliberately generate many keys that collide causing degrading of hash table from O(1) to O(N) performance. This has been used for denial-of-service attacks against web servers. Instead a program can choose a random seed every time it starts.
+- Preventing hash-flooding attacks: Suppose an attacker knows your hash function and can deliberately generate many keys that collide, degrading a hash table from $O(1)$ to $O(N)$ performance. This has been used for denial-of-service attacks against web servers. Instead, a program can choose a random seed every time it starts.
 - Multiple independent hash functions: When multiple independent hash functions are needed (e.g. bloom filter,) instead of implementing N different hash functions, we can just supply N different seeds to the same hash function.
 
 ### Integer Overflow
 
-Unsigned integer arithmetic naturally wraps around modulo `2^N`, where N is the integer width (e.g. 32 or 64 bits). Hash functions intentionally rely on this behavior to keep the hash state bounded while repeatedly applying arithmetic operations without requiring explicit modulo operations.
+Unsigned integer arithmetic naturally wraps around modulo $2^N$, where $N$ is the integer width (e.g., 32 or 64 bits). Hash functions intentionally rely on this behavior to keep the hash state bounded while repeatedly applying arithmetic operations without requiring explicit modulo operations.
 
 ### Bit Mixing
 

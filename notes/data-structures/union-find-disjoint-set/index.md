@@ -137,16 +137,16 @@ So the distinction is:
 
 ## Performance Comparison
 
-Let `n` be the number of elements and `m` be the number of operations.
+Let $n$ be the number of elements and $m$ be the number of operations.
 
 | Optimization | Intuition | Worst-case behavior |
 | --- | --- | --- |
-| None | Trees may become long chains. | `find` can be `O(n)`. |
+| None | Trees may become long chains. | `find` can be $O(n)$. |
 | Path compression only | Bad trees are flattened after being accessed. | Individual `find` can still be expensive before compression. |
-| Union by rank only | Bad trees are prevented from forming. | `find` is `O(log n)`. |
-| Union by rank + path compression | Trees are kept shallow and flattened over time. | Amortized `O(α(n))` per operation. |
+| Union by rank only | Bad trees are prevented from forming. | `find` is $O(\log n)$. |
+| Union by rank + path compression | Trees are kept shallow and flattened over time. | Amortized $O(\alpha(n))$ per operation. |
 
-`α(n)` is the inverse Ackermann function. For all practical input sizes, it is effectively a very small constant.
+$\alpha(n)$ is the inverse Ackermann function. For all practical input sizes, it is effectively a very small constant.
 
 ## Union by Rank Variants
 

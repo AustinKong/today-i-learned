@@ -56,7 +56,7 @@ The mapping must be maintained as new values appear. A value that is not include
 
 ### Round-robin Partitioning
 
-Round-robin partitioning assigns records in insertion order across partitions. With `N` partitions, record `i` is assigned to partition `i mod N`.
+Round-robin partitioning assigns records in insertion order across partitions. With $N$ partitions, record $i$ is assigned to partition $i \bmod N$.
 
 This provides an even distribution and can parallelize sequential access, but a query for a specific record usually needs to check every partition.
 
@@ -167,7 +167,7 @@ Rebalancing moves partitions between nodes when the cluster changes or the load 
 
 ### Hash Modulo N
 
-A simple approach is to assign a key to `hash(key) % N`, where `N` is the number of nodes. This is easy to understand, but changing `N` causes almost every key to map to a different node. Rebalancing is therefore very expensive.
+A simple approach is to assign a key to $\operatorname{hash}(\operatorname{key}) \bmod N$, where $N$ is the number of nodes. This is easy to understand, but changing $N$ causes almost every key to map to a different node. Rebalancing is therefore very expensive.
 
 ### Fixed Number of Partitions
 
@@ -213,7 +213,7 @@ To find the home node of a key:
 2. Walk clockwise until the first node is encountered.
 3. That node, known as the key's successor, owns the key.
 
-When a node joins or leaves the cluster, only the keys whose successor changes need to move. If the `n`th node is added, on average only about `1/n` of the keys are relocated.
+When a node joins or leaves the cluster, only the keys whose successor changes need to move. If the $n$th node is added, on average only about $\frac{1}{n}$ of the keys are relocated.
 
 The basic scheme has one drawback: if each physical node occupies only one position on the ring, a node failure transfers all of its keys to its immediate successor, potentially doubling that node's load.
 
@@ -223,13 +223,13 @@ The node positions on the ring are typically stored in sorted order, allowing th
 
 | Operation     | Classic Hash Table | Consistent Hashing |
 | ------------- | -----------------: | -----------------: |
-| Add a node    |             `O(K)` |   `O(K/N + log N)` |
-| Remove a node |             `O(K)` |   `O(K/N + log N)` |
-| Lookup a key  |             `O(1)` |         `O(log N)` |
-| Add a key     |             `O(1)` |         `O(log N)` |
-| Remove a key  |             `O(1)` |         `O(log N)` |
+| Add a node    |             $O(K)$ |  $O(K/N + \log N)$ |
+| Remove a node |             $O(K)$ |  $O(K/N + \log N)$ |
+| Lookup a key  |             $O(1)$ |        $O(\log N)$ |
+| Add a key     |             $O(1)$ |        $O(\log N)$ |
+| Remove a key  |             $O(1)$ |        $O(\log N)$ |
 
-Where `K` is the number of keys and `N` is the number of nodes.
+Here, $K$ is the number of keys and $N$ is the number of nodes.
 
 Consistent hashing trades slightly slower lookups for dramatically cheaper rebalancing, making it well suited for distributed systems where nodes are frequently added or removed.
 

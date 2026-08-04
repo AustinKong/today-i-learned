@@ -15,11 +15,11 @@ For the general mechanics and properties of hash functions, see [[Hashing]]. Mer
 
 Merkle trees don't need to be binary, and inner nodes could also store data blocks. The concatenation function just needs to be able to handle these.
 
-> In general, our hashing process can be described as `label = h(f(left, right))`. Note that the most common/universal combining function is simply concatenation: `f(A, B) = A || B`, although any combining function `f` is possible, provided they preserve the desired security properties. `h` is the hash function.
+> In general, our hashing process can be described as $\operatorname{label} = h(f(\operatorname{left}, \operatorname{right}))$. The most common combining function is concatenation: $f(A, B) = A \mathbin\Vert B$. Any combining function $f$ is possible, provided it preserves the desired security properties. Here, $h$ is the hash function.
 
 ## Verification and Merkle Proofs
 
-Demonstrating that a leaf node is part of a given Merkle tree requires `O(log n)` hash computations, where `n` is the number of leaf nodes (for a balanced tree.)
+Demonstrating that a leaf node is part of a given Merkle tree requires $O(\log n)$ hash computations, where $n$ is the number of leaf nodes in a balanced tree.
 
 > We say `n` is number of leaf nodes, but asymptotically `n` could also mean the total number of nodes. However, it commonly refers to leaf nodes in papers/articles as data blocks are conventionally stored in leaves, and thats the quantity users care about.
 
@@ -27,11 +27,13 @@ A Merkle proof is the set of sibling hashes required to reconstruct the path fro
 
 In the example above, to prove that `D1` is correctly part of the tree, we must compute:
 
-```text
-H1 = h(D1)
-H12 = h(H1 || H2), assuming H2 is already known
-H-root = h(H12 || H34), assuming H34 is already known
-```
+$$
+\begin{aligned}
+H_1 &= h(D_1) \\
+H_{12} &= h(H_1 \mathbin\Vert H_2) && \text{assuming } H_2 \text{ is already known} \\
+H_{\text{root}} &= h(H_{12} \mathbin\Vert H_{34}) && \text{assuming } H_{34} \text{ is already known}
+\end{aligned}
+$$
 
 The proof consists of the hashes `[H2, H34]`.
 
@@ -58,10 +60,12 @@ Thus, Merkle trees enable efficient integrity checking of large downloads: only 
 
 Some Merkle tree implementations distinguish leaf and internal nodes when hashing:
 
-```text
-leaf = h(0x00 || data)
-internal = h(0x01 || left || right)
-```
+$$
+\begin{aligned}
+\operatorname{leaf} &= h(0x00 \mathbin\Vert \operatorname{data}) \\
+\operatorname{internal} &= h(0x01 \mathbin\Vert \operatorname{left} \mathbin\Vert \operatorname{right})
+\end{aligned}
+$$
 
 This prevents ambiguity between leaf and internal-node hashes and avoids second-preimage attacks.
 

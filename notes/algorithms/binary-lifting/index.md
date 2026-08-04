@@ -3,7 +3,7 @@ title: Binary Lifting
 category: Algorithms
 ---
 
-Binary lifting preprocesses a rooted tree so that ancestor queries can be answered in `O(log n)` time.
+Binary lifting preprocesses a rooted tree so that ancestor queries can be answered in $O(\log n)$ time.
 
 The canonical query is: what is the `k`-th ancestor of node `u`? In other words, which node is `k` edges above `u`? The same precomputation is also commonly used to find the lowest common ancestor (LCA) of two nodes.
 
@@ -13,39 +13,41 @@ The canonical query is: what is the `k`-th ancestor of node `u`? In other words,
 
 Instead of storing only each node's parent, store ancestors at power-of-two distances:
 
-```text
-up[u][0] = 1st ancestor of u  (its parent)
-up[u][1] = 2nd ancestor of u
-up[u][2] = 4th ancestor of u
-up[u][3] = 8th ancestor of u
-...
-```
+$$
+\begin{aligned}
+\operatorname{up}[u][0] &= \text{1st ancestor of } u \text{ (its parent)} \\
+\operatorname{up}[u][1] &= \text{2nd ancestor of } u \\
+\operatorname{up}[u][2] &= \text{4th ancestor of } u \\
+\operatorname{up}[u][3] &= \text{8th ancestor of } u \\
+&\ \vdots
+\end{aligned}
+$$
 
 Any non-negative integer is a sum of powers of two. Therefore, to move `k` steps upward, decompose `k` into its set bits and take the corresponding jumps.
 
-For example, `13 = 8 + 4 + 1 = 1101₂`. To find the 13th ancestor, make jumps of 8, 4, and 1 edges.
+For example, $13 = 8 + 4 + 1 = 1101_2$. To find the 13th ancestor, make jumps of 8, 4, and 1 edges.
 
 ## Building the Jump Table
 
-Let `up[u][j]` be the `2^j`-th ancestor of node `u`. If the tree has `n` nodes, the largest useful jump is less than `n`, so use:
+Let $\operatorname{up}[u][j]$ be the $2^j$-th ancestor of node $u$. If the tree has $n$ nodes, the largest useful jump is less than $n$, so use:
 
-```text
-LOG = ceil(log₂(n)) + 1
-```
+$$
+\operatorname{LOG} = \lceil \log_2 n \rceil + 1
+$$
 
 The first column is given by the tree's parent relation:
 
-```text
-up[u][0] = parent[u]
-```
+$$
+\operatorname{up}[u][0] = \operatorname{parent}[u]
+$$
 
 Every later column follows from two half-sized jumps:
 
-```text
-up[u][j] = up[up[u][j - 1]][j - 1]
-```
+$$
+\operatorname{up}[u][j] = \operatorname{up}[\operatorname{up}[u][j - 1]][j - 1]
+$$
 
-This recurrence says that a `2^j`-edge jump is two consecutive `2^(j - 1)`-edge jumps.
+This recurrence says that a $2^j$-edge jump is two consecutive $2^{j - 1}$-edge jumps.
 
 > Use a sentinel such as `-1` for a nonexistent ancestor. The root's parent is then `-1`, and the recurrence must not index through `-1`.
 
@@ -89,7 +91,7 @@ def kth_ancestor(u: int, k: int, up: list[list[int]]) -> int:
     return u
 ```
 
-For `k = 13 = 1101₂`, this takes the jumps at bit positions `0`, `2`, and `3`: 1, 4, and 8 edges. Their order does not affect the result because every jump follows the same path towards the root.
+For $k = 13 = 1101_2$, this takes the jumps at bit positions $0$, $2$, and $3$: 1, 4, and 8 edges. Their order does not affect the result because every jump follows the same path towards the root.
 
 > A query with `k = 0` returns `u` itself. If `k` is greater than `depth[u]`, the requested ancestor does not exist.
 
@@ -123,6 +125,6 @@ def lca(u: int, v: int, depth: list[int], up: list[list[int]]) -> int:
 
 | Operation | Time | Space |
 | --- | --- | --- |
-| Build the table | `O(n log n)` | `O(n log n)` |
-| `k`-th ancestor | `O(log n)` | — |
-| LCA | `O(log n)` | — |
+| Build the table | $O(n \log n)$ | $O(n \log n)$ |
+| $k$-th ancestor | $O(\log n)$ | — |
+| LCA | $O(\log n)$ | — |

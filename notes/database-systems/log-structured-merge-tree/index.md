@@ -28,7 +28,7 @@ In the context of LSM trees, the term "segment" refers to a file containing a se
 
 ### Binary Search Inside an SSTable
 
-We can use binary search to efficiently search in an SSTable, but this only works well with fixed-size records. For variable-length records, the physical byte position does not map cleanly to the logical record position, making binary search produce skewed results leading to worse than `O(log n)` complexity.
+We can use binary search to efficiently search in an SSTable, but this only works well with fixed-size records. For variable-length records, the physical byte position does not map cleanly to the logical record position, making binary search produce skewed results leading to worse than $O(\log n)$ complexity.
 
 ![SSTable Binary Search](./assets/sstable-binary-search.excalidraw)
 
@@ -42,7 +42,7 @@ Instead of binary searching raw records directly, many systems use indexes and b
 
 Searching across the entire SSTable is as follows:
 
-1. Binary search over the sparse index, find the greatest indexed key <= target key.
+1. Binary search over the sparse index to find the greatest indexed key $k_{\text{index}}$ such that $k_{\text{index}} \leq k_{\text{target}}$.
 2. Read the entire data block from disk.
 3. Perform a linear scan over the block, or perform binary search within the block if metadata supports it.
 

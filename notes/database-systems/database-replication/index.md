@@ -239,9 +239,9 @@ Leaderless systems often use quorum reads and writes. Let `n` be the number of r
 
 The quorum condition is defined as:
 
-```text
+$$
 w + r > n
-```
+$$
 
 This ensures that the read set and write set overlap in at least one replica.
 
@@ -257,7 +257,7 @@ But quorum condition alone does not guarantee strong consistency. There are seve
 
 So quorum reads and writes are better understood as a tunable consistency mechanism. Increasing `w` makes writes more durable but slower. Increasing `r` makes reads more likely to observe recent writes but slower. Decreasing `w` or `r` improves availability and latency, but increases the chance of stale reads.
 
-One may even set `w + r <= n` as needed.
+One may even set $w + r \leq n$ as needed.
 
 ### Sloppy Quorum
 
@@ -292,7 +292,7 @@ With a normal quorum, reads and writes are sent to those home replicas. With slo
 
 Later, when one of the home replicas becomes available again, the data is forwarded to it. This is called hinted handoff.
 
-Sloppy quorum improves availability because writes can succeed even when some home replicas are unavailable. The cost is weaker consistency. Even if `w + r > n`, a later read from the original home replicas may miss a write that was temporarily stored somewhere else.
+Sloppy quorum improves availability because writes can succeed even when some home replicas are unavailable. The cost is weaker consistency. Even if $w + r > n$, a later read from the original home replicas may miss a write that was temporarily stored somewhere else.
 
 ## Replication Logs
 

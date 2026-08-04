@@ -161,11 +161,11 @@ In the example above, a solution would be to recognize that messages within a ch
 
 ## Concurrent Writes
 
-### Causality and Happens-Before
+### Causal Dependencies in Replication
 
-A write is causally dependent on another write if it was made after observing that earlier write.
+In replication, a write is [[Time|causally dependent]] on another write when a client creates it after observing the earlier write.
 
-Consider the following example from DDIA:
+The following example from DDIA shows those dependencies in a replicated system:
 
 ![Causality Example 1](./assets/ddia-causal-dependency-example-1.jpg)
 
@@ -173,7 +173,7 @@ Their causal dependency graph is as follows:
 
 ![Causality Graph](./assets/ddia-causal-dependency-example-2.jpg)
 
-We define two writes to be [[Concurrency|concurrent]] if neither write happens-before the other. These writes may not even overlap in time, but are still "concurrent".
+The following causal-dependency algorithm uses this distinction to decide whether an incoming write replaces an existing value or must be kept as a concurrent sibling.
 
 ### Simple Algorithm to Detect Causal Dependency
 
@@ -189,8 +189,8 @@ The server uses the submitted version number to decide whether the new write ove
 When a write arrives with version N:
 
 1. The server treats the write as being based on all values at version N or below.
-2. The server can discard values whose versions are <= N, because the client has seen and replaced them.
-3. The server must keep values whose versions are > N, because those values were created after the client's read and are therefore concurrent with the client's write.
+2. The server can discard values whose versions are $\leq N$, because the client has seen and replaced them.
+3. The server must keep values whose versions are $> N$, because those values were created after the client's read and are therefore concurrent with the client's write.
 4. The server assigns a new version number (current version number + 1) to the new value.
 5. The server returns all current sibling values to the client. (This step can be skipped if we ensure client always reads before writing.)
 
@@ -198,27 +198,13 @@ This algorithm identifies causal dependencies but still requires one of the reso
 
 > This algorithm can be seen in the "Causality Example 1" sequence diagram above. It stores one or more current values because conflict resolution is assumed to happen in the application. Database-layer approaches such as CRDTs can resolve those values within the data type instead.
 
-### Version Vectors
-
-The algorithm above assumes exactly one replica to work, we will now discuss a general solution to the algorithm that works for many replicas accepting writes independently.
+### Version Vectors in Replication
 
 ![Version Vectors](./assets/version-vectors.excalidraw)
 
-A version vector is used to track what each replica has seen. It describes what the current value stored in a replica contains from other replicas.
+A version vector is a [[Time|vector clock]] attached to a particular data item or version.
 
-In the example, version vector of replica A is `[A:2, B:1, C:3, D:1]`, thus the value currently stored in replica A:
-
-- Includes updates up to version 2 from replica A (trivially, in the most up to date state.)
-- Includes updates up to version 1 from replica B (happens to be in the most up to date state.)
-- Includes updates up to version 3 from replica C (is 2 versions behind the current state of replica C.)
-- Includes updates up to version 1 from replica D (happens to be in the most up to date state.)
-
-Comparing two version vectors X and Y:
-
-- If X and Y are equal, they represent the same causal version.
-- If every entry in X is greater than or equal to the corresponding entry in Y, and at least one entry in X is greater, then Y happened-before X.
-- If every entry in Y is greater than or equal to the corresponding entry in X, and at least one entry in Y is greater, then X happened-before Y.
-- If neither vector dominates the other, X and Y are concurrent and conflict resolution may be required.
+In a database, the vector records which updates this value already includes. When a replica receives another version of the same item, it applies those rules to decide whether the incoming version supersedes the local value, is stale, or is concurrent. Concurrent versions must be kept as siblings or resolved using a strategy from [[Write Conflicts]].
 
 ## Strong Eventual Consistency
 

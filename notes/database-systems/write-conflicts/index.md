@@ -156,9 +156,9 @@ State-based CRDTs (or, convergent replicated data types, CvRDTs) maintain state 
 
 The merge function must be:
 
-- Commutative: `merge(a, b) = merge(b, a)`
-- Associative: `merge(a, merge(b, c)) = merge(merge(a, b), c)`
-- Idempotent: `merge(a, a) = a`
+- Commutative: $\operatorname{merge}(a, b) = \operatorname{merge}(b, a)$
+- Associative: $\operatorname{merge}(a, \operatorname{merge}(b, c)) = \operatorname{merge}(\operatorname{merge}(a, b), c)$
+- Idempotent: $\operatorname{merge}(a, a) = a$
 
 These properties make state merging insensitive to message order, grouping, and duplication.
 
@@ -221,9 +221,9 @@ A state-based G-Counter stores one non-decreasing component per replica:
 
 The counter's value is the sum:
 
-```text
+$$
 3 + 5 + 2 = 10
-```
+$$
 
 Replica A increments only its own component:
 
@@ -255,9 +255,9 @@ N = decrements
 
 Its value is:
 
-```text
-sum(P) - sum(N)
-```
+$$
+\operatorname{sum}(P) - \operatorname{sum}(N)
+$$
 
 For example:
 
