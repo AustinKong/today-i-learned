@@ -3,27 +3,29 @@ title: Transactions
 category: Database Systems
 ---
 
-A transaction is a single unit of logic or work, made up of one or more operations.
+A *transaction* is a single unit of logic or work made up of one or more operations.
 
-Transactions concern the atomicity and isolation parts of ACID:
+Transactions concern the atomicity and isolation parts of *ACID*:
 
-- Atomicity: A transaction should commit or abort atomically. If a transaction is aborted, all writes it made should be discarded.
-- Isolation: [[Concurrency|Concurrent transactions]] shouldn't interfere with each other.
+- *Atomicity*: A transaction should commit or abort atomically. If a transaction is aborted, all writes it made should be discarded.
+- *Isolation*: [[Concurrency|Concurrent transactions]] shouldn't interfere with each other.
 
-In general, storage engines aim to provide atomicity and isolation at the level of a single object. Atomicity is achieved by means of a [[Write Ahead Logging|write-ahead log]]; isolation can be achieved by locking objects (allowing only one thread to access an object at a time).
+In general, storage engines aim to provide atomicity and isolation at the level of a single object. Atomicity is achieved through a [[Write Ahead Logging|write-ahead log]], while isolation can be achieved by locking objects (allowing only one thread to access an object at a time).
 
-Some distributed databases avoid implementing multi-object transactions as they are difficult to implement across partitions. In theory all applications can be implemented without transactions, but would require extremely robust and complex error handling.
+Some distributed databases avoid implementing multi-object transactions because they are difficult to implement across partitions. In theory, all applications can be implemented without transactions, but doing so requires extremely robust and complex error handling.
 
 ## Read Committed
 
-Read committed is the most basic level of transaction isolation. It makes two guarantees:
+*Read committed* is the most basic level of transaction isolation. It makes two guarantees:
 
-1. No dirty reads: When reading, you will only see data that has been committed.
-2. No dirty writes: When writing, you will only overwrite data that has been committed.
+1. No *dirty reads*: When reading, you will only see data that has been committed.
+2. No *dirty writes*: When writing, you will only overwrite data that has been committed.
 
 Read committed is the default in many databases and is very popular.
 
 ### Dirty Writes
+
+The following sequence diagram shows one transaction overwriting another transaction's uncommitted write:
 
 ```mermaid
 ---
@@ -52,6 +54,8 @@ Dirty writes can be prevented using row-level locks: only one transaction can ho
 
 ### Dirty Reads
 
+The following sequence diagram shows one transaction reading another transaction's uncommitted write:
+
 ```mermaid
 ---
 caption: "A dirty read"
@@ -76,25 +80,27 @@ sequenceDiagram
 
 A dirty read occurs when a transaction can read uncommitted writes from another transaction, potentially leading it to make incorrect decisions.
 
-One way to prevent dirty reads is to reuse the row-level locks used in dirty write prevention; this ensures rows being used in a transaction cannot be read. However, this does not scale well, as long-running writes will block any and all reads.
+One way to prevent dirty reads is to reuse the row-level locks used in dirty write prevention; this ensures rows being used in a transaction can't be read. However, this doesn't scale well, as long-running writes will block any and all reads.
 
-For that reason, most databases do this instead: When a write is made, the database creates a copy of the row for modification, leaving the existing row untouched. Any other concurrent read transactions will use the existing row. Once the write transaction commits, its copy of the row replaces the existing row for all future reads.
+For that reason, most databases do this instead: when a write is made, the database creates a copy of the row for modification, leaving the existing row untouched. Any other concurrent read transactions use the existing row. Once the write transaction commits, its copy of the row replaces the existing row for all future reads.
 
 > Note that this is not the same as snapshot isolation (next section), as non-repeatable reads and read skew anomalies (both discussed in the next section) can still occur.
 
 ## Snapshot Isolation
 
-Snapshot isolation is the next level of transaction isolation that solves three problems:
+*Snapshot isolation* is the next level of transaction isolation that solves three problems:
 
-1. No non-repeatable reads: Reading the same row twice within the same transaction should always return the same data.
-2. No read skew: Reading two different but related rows should return data that are compatible with each other.
-3. No phantom reads: Executing the same query twice within the same transaction should always return the same set of rows.
+1. No *non-repeatable reads*: Reading the same row twice within the same transaction should always return the same data.
+2. No *read skew*: Reading two different but related rows should return data that are compatible with each other.
+3. No *phantom reads*: Executing the same query twice within the same transaction should always return the same set of rows.
 
 In many database implementations, this isolation level is called repeatable read instead.
 
-> The DDIA book groups non-repeatable reads and read skew as the same thing, however they are actually distinct anomalies. [Source](https://stackoverflow.com/questions/73917534/read-skew-vs-non-repeatable-read-transaction).
+> The DDIA book groups non-repeatable reads and read skew as the same thing; however, they are distinct anomalies. See this [discussion of read skew and non-repeatable reads](https://stackoverflow.com/questions/73917534/read-skew-vs-non-repeatable-read-transaction).
 
 ### Non-Repeatable Read
+
+The following sequence diagram shows a transaction reading the same row twice and observing different committed values:
 
 ```mermaid
 ---
@@ -119,9 +125,11 @@ sequenceDiagram
     U1->>DB: COMMIT
 ```
 
-A non-repeatable read is when a transaction reads the same row twice and gets different values because another transaction committed an update in between.
+A non-repeatable read occurs when a transaction reads the same row twice and gets different values because another transaction committed an update in between.
 
 ### Read Skew
+
+The following sequence diagram shows a transaction reading related rows from different points in time:
 
 ```mermaid
 ---
@@ -147,11 +155,13 @@ sequenceDiagram
     U1->>DB: COMMIT
 ```
 
-A read skew is when a transaction reads two or more related values and sees an inconsistent combination of old and new data. The individual reads are each committed, but together they do not reflect any single consistent point in time.
+A read skew occurs when a transaction reads two or more related values and sees an inconsistent combination of old and new data. The individual reads are each committed, but together they don't reflect any single consistent point in time.
 
-In the example above, User 2 makes a transfer from account A to B. Together, the sum of the balances should be 200, but from User 1's point of view, the sum of the balances is 210.
+In the example above, User 2 transfers money from account A to B. Together, the balances should sum to 200, but from User 1's point of view, they sum to 210.
 
 ### Phantom Read
+
+The following sequence diagram shows a transaction repeating a query and observing a newly inserted matching row:
 
 ```mermaid
 ---
@@ -180,17 +190,21 @@ A phantom read occurs when the same query is executed twice within a transaction
 
 ### Implementation
 
-In the above cases, the anomalies are harmless, but some situations cannot tolerate such temporary inconsistency:
+In the above cases, the anomalies are harmless, but some situations can't tolerate such temporary inconsistency:
 
 - Making a backup: You could end up with some parts of the database with older data, and other parts with newer data. If you restore from this backup, the inconsistencies become permanent.
 - Analytic queries and integrity checks: Long-running queries are likely to return nonsensical data if they observe the database at different points in time.
 
-![Snapshot Isolation](./assets/snapshot-isolation.jpg)
+The following image illustrates how snapshot isolation gives a transaction a consistent view while other transactions continue writing:
 
-Snapshot isolation fixes this. It is implemented as follows:
+![Snapshot isolation providing a consistent transaction view](./assets/snapshot-isolation.jpg)
+
+Snapshot isolation reads from a stable snapshot instead of observing each row's latest committed version independently.
+
+It is implemented as follows:
 
 - Write locks are used to prevent dirty writes.
-- Reading uses a generalization of the technique described in the "Dirty Reads" section. Instead of simply reading the latest committed version of each row, every transaction reads from a consistent snapshot of the database taken when the transaction begins. This is made possible by maintaining multiple versions of each row, a technique known as multi-version concurrency control (MVCC).
+- Reading uses a generalization of the technique described in the "Dirty Reads" section. Instead of simply reading the latest committed version of each row, every transaction reads from a consistent snapshot of the database taken when the transaction begins. This is made possible by maintaining multiple versions of each row, a technique known as *multi-version concurrency control* (MVCC).
 
 MVCC-based snapshot isolation is implemented by using a monotonically increasing transaction ID `tx_id`. Each row in a table has `created_by` and `deleted_by` fields containing the transaction ID that inserted or deleted it. On row modification:
 
@@ -204,11 +218,13 @@ The following steps can be used to decide which snapshot to present to the trans
 
 1. At the start of the transaction, make a list of other transactions in progress. Ignore writes made by those transactions.
 2. Any writes made by aborted transactions are ignored.
-3. During the transaction, any writes with higher transaction IDs are ignored.
+3. Any writes with higher transaction IDs are ignored.
 
 > In different storage engines, the underlying implementation differs. PostgreSQL stores multiple physical rows that map to the same logical row; readers use filters to query the latest relevant row. Oracle Database does the opposite: the current row is overwritten, but the previous value is stored in an undo log. If an older transaction needs the previous version, the engine reconstructs it from undo information. Other engines organize versions as a linked list; a reader walks the chain until it finds the newest version visible to its snapshot.
 
 ## Lost Updates
+
+The following sequence diagram shows two transactions reading the same value and then overwriting each other's updates:
 
 ```mermaid
 ---
@@ -236,9 +252,11 @@ sequenceDiagram
     Note over DB: Expected: 7<br/>Actual: 6
 ```
 
-Lost updates are an anomaly that occurs when two transactions overwrite each other's updates. These occur when an application performs a read-modify-write cycle.
+*Lost updates* occur when two transactions overwrite each other's updates. This can happen when an application performs a *read-modify-write cycle*.
 
 ### Explicit Locking
+
+The following SQL transaction explicitly locks a row before reading and updating it:
 
 ```sql
 BEGIN;
@@ -257,9 +275,11 @@ WHERE key = 'foo';
 COMMIT; -- Releases locks taken within this transaction
 ```
 
-One way to solve this is by explicitly locking affected rows before performing the read-modify-write cycle and releasing them afterward. Any other transactions are forced to wait until the lock is released.
+One way to solve lost updates problem is by explicitly locking affected rows before performing the read-modify-write cycle and releasing them afterward. Any other transactions are forced to wait until the lock is released.
 
 ### Atomic Write Operations
+
+The following SQL statement increments a value atomically:
 
 ```sql
 UPDATE counters SET value = value + 1 WHERE key = 'foo';
@@ -267,8 +287,7 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 
 Many databases provide atomic write operations, which remove the need to implement read-modify-write cycles. These are usually the best solution.
 
-Under the hood, atomic operations are also implemented by taking a lock on affected rows until changes are applied. Conceptually, it is the same as explicit locking above, except the database is managing the lock and release for us.
-
+Under the hood, atomic operations are also implemented by taking a lock on affected rows until changes are applied. Conceptually, it is the same as explicit locking above, except the database manages the lock and release for us.
 
 ### Compare-and-Set
 
@@ -279,13 +298,15 @@ UPDATE pages SET content = 'new content'
     WHERE id = 1234 AND CONTENT = 'old content';
 ```
 
-However, if the database allows the `WHERE` clause to read from an old snapshot (instead of the latest committed one), this will not prevent lost updates. You must check whether the database supports compare-and-set operations.
+However, if the database allows the `WHERE` clause to read from an old snapshot (instead of the latest committed one), this won't prevent lost updates. Check whether the database supports compare-and-set operations.
 
 > Note that lost updates, explicit locking, and compare-and-set methods rely on there being a single up-to-date copy of the data. Thus, they don't work for [[Database Replication|multi-leader or leaderless databases]].
 
 ### Detecting Lost Updates
 
 Explicit locking and atomic write operations force the read-modify-write cycles to happen sequentially. An alternative is to execute them in parallel and, if the transaction manager detects a lost update, abort the transaction and force it to retry.
+
+The following sequence diagram shows a transaction aborting after the database detects that another transaction changed the row it read:
 
 ```mermaid
 ---
@@ -317,6 +338,8 @@ This can be implemented by building upon MVCC systems used in snapshot isolation
 
 ## Write Skew
 
+The following sequence diagram shows two transactions independently updating related rows and violating an application invariant:
+
 ```mermaid
 ---
 caption: "A write skew"
@@ -346,9 +369,9 @@ sequenceDiagram
     Note over DB: Final state:\nAlice = Off Call\nBob = Off Call\nNo doctor on call
 ```
 
-Write skew is an anomaly where two concurrent transactions read the same set of related rows, then each updates a different row based on what they read. Since the transactions modify different rows, they do not conflict directly, but together can violate an application invariant.
+*Write skew* is an anomaly where two concurrent transactions read the same set of related rows, then each updates a different row based on what they read. Since the transactions modify different rows, they don't conflict directly, but together can violate an application invariant.
 
-In the example above, the application invariant is: "At least one doctor must be on call at any time."
+In the example above, the application invariant is that at least one doctor must be on call at any time.
 
 ### Explicit Locking
 
@@ -371,7 +394,7 @@ As with preventing lost updates, we can also use explicit locks to prevent write
 
 ### Materializing Conflicts
 
-Consider another example:
+The following sequence diagram shows a write skew caused by two transactions finding no existing booking for the same room and time:
 
 ```mermaid
 ---
@@ -402,13 +425,13 @@ sequenceDiagram
     Note over DB: Final state:\nTwo bookings for the same room and time
 ```
 
-This cannot be solved by explicit locking, because there is nothing to apply the lock to. As such, we need to use a technique called materializing conflicts.
+This can't be solved by explicit locking because there is nothing to apply the lock to. Instead, use a technique called *materializing conflicts*.
 
-Create a new table of timeslots and rooms; each row in the table corresponds to a particular room for a particular time period of the day (e.g. 15-minute increments). Create rows for all possible combinations of rooms and time periods ahead of time (e.g. 6 months). Now a transaction can lock the rows in the table corresponding to the desired room and time period.
+Create a new table of timeslots and rooms; each row in the table corresponds to a particular room for a particular time period of the day (for example, 15-minute increments). Create rows for all possible combinations of rooms and time periods ahead of time (for example, six months). A transaction can then lock the rows corresponding to the desired room and time period.
 
 ## Serializability
 
-Serializable isolation is the strongest isolation level. It guarantees that even though transactions may execute in parallel, the end result is the same as if they had executed serially. In other words, the database prevents all possible race conditions.
+*Serializable isolation* is the strongest isolation level. It guarantees that even though transactions may execute in parallel, the end result is the same as if they had executed serially. In other words, the database prevents all possible race conditions.
 
 There are three implementations of serializable isolation:
 
@@ -418,16 +441,18 @@ There are three implementations of serializable isolation:
 
 ### Serial Execution
 
-Serial execution literally removes concurrency and executes transactions one at a time on a single thread.
+*Serial execution* removes concurrency and executes transactions one at a time on a single thread.
 
 This only became feasible fairly recently due to two developments:
 
 1. RAM became cheap enough to keep the entire active dataset in memory.
 2. Database designers realized OLTP transactions are short enough to run serially; long-running OLAP transactions are typically read-only and can be run on a consistent snapshot outside the serial execution loop.
 
-Systems with single-threaded serial transaction processing don't allow multi-statement (interactive) transactions. Instead, the application must submit the entire transaction code ahead of time, as a stored procedure.
+Systems with single-threaded serial transaction processing don't allow multi-statement (interactive) transactions. Instead, the application must submit the entire transaction code ahead of time as a stored procedure.
 
-> The reason is because multi-statement (interactive) transactions have to pause the execution thread in between statements, waiting for the application, then resume later. That defeats the purpose of serial execution because the single thread would spend most of its time idle waiting for clients. More importantly, stored procedures mitigate the idle network delay of the application server sending SQL to the database, by keeping the SQL on the database in the first place, and only sending the input parameters over the network.
+> The reason is because multi-statement (interactive) transactions have to pause the execution thread in between statements, waiting for the application, then resume later. That defeats the purpose of serial execution because the single thread would spend most of its time idle waiting for clients.
+>
+> More importantly, stored procedures mitigate the idle network delay of the application server sending SQL to the database, by keeping the SQL on the database in the first place, and only sending the input parameters over the network.
 
 To improve database transaction throughput, one technique is to run read-only transactions using snapshot isolation outside the serial execution loop.
 
@@ -435,7 +460,9 @@ Another technique is to scale up to multiple CPU cores by [[partitioning]] the d
 
 ### Two-Phase Locking
 
-Two-phase locking (2PL) is similar to how we solve dirty writes, but makes lock requirements much stronger by making writers also block readers.
+*Two-phase locking* (2PL) is similar to how dirty writes are prevented, but it makes lock requirements much stronger by making writers also block readers.
+
+The following sequence diagram shows a writer waiting for two shared locks to be released:
 
 ```mermaid
 ---
@@ -482,27 +509,27 @@ sequenceDiagram
 
 The name "two-phase" comes from:
 
-1. The first phase is when locks are acquired
-2. The second phase is when locks are released
+1. The first phase is when locks are acquired.
+2. The second phase is when locks are released.
 
-Since so many locks are in use, two transactions could be stuck waiting for each other to release the lock. This is called a deadlock. The database should automatically detect deadlocks and abort one of the transactions so it can be retried.
+Since so many locks are in use, two transactions could be stuck waiting for each other to release the lock. This is called a *deadlock*. The database should automatically detect deadlocks and abort one of the transactions so it can be retried.
 
 In general, 2PL performs quite poorly due to its implementation and deadlocks.
 
 #### Predicate Locks
 
-2PL itself does not solve write skews; we need predicate locks to solve this. A predicate lock is a lock that belongs to all rows matching some search condition (a predicate). Similar rules to 2PL apply:
+2PL itself doesn't solve write skew; *predicate locks* are needed. A predicate lock is a lock that belongs to all rows matching a search condition (a predicate). Similar rules to 2PL apply:
 
 - If a transaction wants to read rows matching some condition, it must acquire a shared-mode predicate lock on the conditions in the query. If another transaction currently has an exclusive lock on any row matching those conditions, it must wait.
 - If a transaction wants to write rows, it must check whether either the old or new value matches any existing predicate lock. If there is such a predicate lock, then it must wait.
 
 The key idea is that predicate locks apply even to rows that don't yet exist, but which might in the future.
 
-> Note that 2PL without predicate locks does not guarantee serializability.
+> 2PL without predicate locks doesn't guarantee serializability.
 
 #### Index-Range Locks
 
-Predicate locks perform poorly. For that reason, most databases implementing 2PL use index-range locking (also known as next-key locking), which approximates predicate locking by locking ranges of index entries instead of arbitrary predicates.
+Predicate locks perform poorly. For that reason, most databases implementing 2PL use *index-range locking* (also known as next-key locking), which approximates predicate locking by locking ranges of index entries instead of arbitrary predicates.
 
 Consider a query:
 
@@ -515,33 +542,33 @@ WHERE room_id = 123
 FOR UPDATE;
 ```
 
-If I have only one index:
+With only one index:
 
 ```sql
 CREATE INDEX room_id_index
 ON bookings (room_id);
 ```
 
-Then the database will take an index-range lock on the range corresponding to `room_id = 123`.
+The database takes an index-range lock on the range corresponding to `room_id = 123`.
 
-If instead I have the index:
+With the following index instead:
 
 ```sql
 CREATE INDEX room_id_slot_index
 ON bookings (room_id, slot);
 ```
 
-Then the database will take an index-range lock on the range corresponding to `(room_id, slot) = (123, 10:00-11:00)`.
+The database takes an index-range lock on the range corresponding to `(room_id, slot) = (123, 10:00-11:00)`.
 
 > If several indexes exist, the query planner chooses the index used to execute the query, and the index-range lock is taken on that index.
 
 ### Serializable Snapshot Isolation
 
-Serializable Snapshot Isolation (SSI) combines the performance benefits of snapshot isolation with the correctness guarantees of serializable isolation.
+*Serializable Snapshot Isolation* (SSI) combines the performance benefits of snapshot isolation with the correctness guarantees of serializable isolation.
 
-Like snapshot isolation, transactions read from a consistent snapshot without blocking writers, and writers do not block readers. Unlike snapshot isolation, the database monitors interactions between concurrent transactions. If it detects a combination of reads and writes that could not have occurred in any serial execution, it aborts one of the transactions and forces it to retry.
+Like snapshot isolation, transactions read from a consistent snapshot without blocking writers, and writers don't block readers. Unlike snapshot isolation, the database monitors interactions between concurrent transactions. If it detects a combination of reads and writes that couldn't have occurred in any serial execution, it aborts one of the transactions and forces it to retry.
 
-For example, consider the write skew anomaly:
+The following sequence diagram shows SSI aborting one transaction after detecting a dangerous write-skew pattern:
 
 ```mermaid
 ---
@@ -568,24 +595,24 @@ sequenceDiagram
     DB-->>T2: ABORT (serialization failure)
 ```
 
-SSI extends snapshot isolation by recording which transactions read which rows (using non-blocking SIREAD locks). When a transaction writes a row, the database records a dependency on any transaction that previously read that row. If these dependencies form a dangerous structure that cannot be serialized, one of the transactions is aborted and retried.
+SSI extends snapshot isolation by recording which transactions read which rows (using non-blocking `SIREAD` locks). When a transaction writes a row, the database records a dependency on any transaction that previously read that row. If these dependencies form a dangerous structure that can't be serialized, one of the transactions is aborted and retried.
 
 ### Pessimistic vs Optimistic Concurrency Control
 
 <!-- TODO: This might be a broader topic than just transactions. Will move out when/if we have a concurrency control TIL in the future -->
-Pessimistic concurrency control mechanisms operate on the principle that if anything might go wrong, it's better to wait until the situation is safe again before doing anything. 2PL is such a mechanism.
+*Pessimistic concurrency control* mechanisms operate on the principle that if anything might go wrong, it's better to wait until the situation is safe again before doing anything. 2PL is such a mechanism.
 
-Optimistic concurrency control mechanisms allow transactions to continue instead of blocking. When a transaction wants to commit, the database checks whether anything bad happened and aborts the transaction so it can be retried when necessary. SSI relies on this.
+*Optimistic concurrency control* mechanisms allow transactions to continue instead of blocking. When a transaction wants to commit, the database checks whether anything bad happened and aborts the transaction so it can be retried when necessary. SSI relies on this.
 
 Optimistic concurrency control performs poorly if there is high contention, as it leads to a high proportion of transactions needing to abort. If the system is already under high load, retrying transactions can make performance worse. However, if there is enough spare bandwidth, optimistic concurrency control mechanisms tend to perform better than pessimistic ones.
 
 ## Summary
 
-| Isolation level    | Dirty reads | Dirty writes | Non-repeatable reads | Read skew | Phantom reads | Lost updates* | Write skew |
-| ------------------ | :---------: | :----------: | :------------------: | :-------: | :-----------: | :-----------: | :--------: |
-| Read Uncommitted   |      ✗      |       ✗      |           ✗          |     ✗     |       ✗       |       ✗       |      ✗     |
-| Read Committed     |      ✓      |       ✓      |           ✗          |     ✗     |       ✗       |    Depends    |      ✗     |
-| Snapshot Isolation |      ✓      |       ✓      |           ✓          |     ✓     |       ✓       |    Depends    |      ✗     |
-| Serializable       |      ✓      |       ✓      |           ✓          |     ✓     |       ✓       |       ✓       |      ✓     |
+| Isolation level | Dirty reads | Dirty writes | Non-repeatable reads | Read skew | Phantom reads | Lost updates* | Write skew |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Read Uncommitted | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Read Committed | ✓ | ✓ | ✗ | ✗ | ✗ | Depends | ✗ |
+| Snapshot Isolation | ✓ | ✓ | ✓ | ✓ | ✓ | Depends | ✗ |
+| Serializable | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 > \* Depends on the database implementation. Many MVCC databases detect lost updates under Snapshot Isolation, but it is not required by the isolation level. Thus, be sure to add lost update prevention if needed by your application.

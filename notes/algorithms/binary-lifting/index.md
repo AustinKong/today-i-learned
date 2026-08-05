@@ -3,27 +3,31 @@ title: Binary Lifting
 category: Algorithms
 ---
 
-Binary lifting preprocesses a rooted tree so that ancestor queries can be answered in $O(\log n)$ time.
+*Binary lifting* preprocesses a rooted tree so that ancestor queries can be answered in $O(\log n)$ time.
 
-The canonical query is: what is the `k`-th ancestor of node `u`? In other words, which node is `k` edges above `u`? The same precomputation is also commonly used to find the lowest common ancestor (LCA) of two nodes.
+The canonical query asks for the $k$-th ancestor of node $u$: the node that is $k$ edges above it. The same precomputation is commonly used to find the lowest common ancestor (LCA) of two nodes.
 
 ## Idea
 
-![Binary Lifting](./assets/binary-lifting.excalidraw)
+The following diagram illustrates the parent relationships and longer jumps that binary lifting stores:
+
+![Tree showing parent relationships and power-of-two ancestor jumps](./assets/binary-lifting.excalidraw)
+
+Each stored jump moves upward along the same path as the parent links, but skips a power-of-two number of edges.
 
 Instead of storing only each node's parent, store ancestors at power-of-two distances:
 
 $$
 \begin{aligned}
-\operatorname{up}[u][0] &= \text{1st ancestor of } u \text{ (its parent)} \\
-\operatorname{up}[u][1] &= \text{2nd ancestor of } u \\
-\operatorname{up}[u][2] &= \text{4th ancestor of } u \\
-\operatorname{up}[u][3] &= \text{8th ancestor of } u \\
+\operatorname{up}[u][0] &= \text{first ancestor of } u \text{ (its parent)} \\
+\operatorname{up}[u][1] &= \text{second ancestor of } u \\
+\operatorname{up}[u][2] &= \text{fourth ancestor of } u \\
+\operatorname{up}[u][3] &= \text{eighth ancestor of } u \\
 &\ \vdots
 \end{aligned}
 $$
 
-Any non-negative integer is a sum of powers of two. Therefore, to move `k` steps upward, decompose `k` into its set bits and take the corresponding jumps.
+Any non-negative integer is a sum of powers of two. Therefore, to move $k$ steps upward, decompose $k$ into its set bits and take the corresponding jumps.
 
 For example, $13 = 8 + 4 + 1 = 1101_2$. To find the 13th ancestor, make jumps of 8, 4, and 1 edges.
 
@@ -49,7 +53,9 @@ $$
 
 This recurrence says that a $2^j$-edge jump is two consecutive $2^{j - 1}$-edge jumps.
 
-> Use a sentinel such as `-1` for a nonexistent ancestor. The root's parent is then `-1`, and the recurrence must not index through `-1`.
+Use a sentinel such as `-1` for a nonexistent ancestor. The root's parent is then `-1`, and the recurrence must not index through `-1`.
+
+The following implementation builds the table from a parent array in which `-1` marks a node without a parent:
 
 ```python
 # Assuming parent[u] = -1 if u has no parent
@@ -70,11 +76,13 @@ def build_jump_table(parent: list[int]) -> list[list[int]]:
     return up
 ```
 
-The parent array can be supplied directly, or computed with a DFS/BFS from a chosen root.
+The guard prevents the implementation from indexing through the sentinel.
 
-## Finding the `k`-th Ancestor
+The parent array can be supplied directly, or computed with a depth-first or breadth-first search from a chosen root.
 
-For each set bit `j` of `k`, jump from the current node to `up[u][j]`.
+## Finding the $k$-th Ancestor
+
+For each set bit $j$ of $k$, jump from the current node to `up[u][j]`.
 
 ```python
 def kth_ancestor(u: int, k: int, up: list[list[int]]) -> int:
@@ -97,12 +105,12 @@ For $k = 13 = 1101_2$, this takes the jumps at bit positions $0$, $2$, and $3$: 
 
 ## Lowest Common Ancestor
 
-The lowest common ancestor of `u` and `v` is their deepest shared ancestor.
+The lowest common ancestor of nodes $u$ and $v$ is their deepest shared ancestor.
 
 1. Lift the deeper node until both nodes have the same depth.
-2. If they now match, that node is the LCA.
+2. If they now match, return that node as the LCA.
 3. Otherwise, try jumps from largest to smallest. Whenever the two nodes would land on different ancestors, take that jump for both.
-4. Their parents are now the LCA.
+4. Return their parents as the LCA.
 
 ```python
 def lca(u: int, v: int, depth: list[int], up: list[list[int]]) -> int:
@@ -123,8 +131,12 @@ def lca(u: int, v: int, depth: list[int], up: list[list[int]]) -> int:
 
 ## Complexity
 
+The following table summarizes the time and space costs of the preprocessing and query operations:
+
 | Operation | Time | Space |
 | --- | --- | --- |
 | Build the table | $O(n \log n)$ | $O(n \log n)$ |
-| $k$-th ancestor | $O(\log n)$ | — |
-| LCA | $O(\log n)$ | — |
+| $k$-th ancestor | $O(\log n)$ | $O(1)$ |
+| LCA | $O(\log n)$ | $O(1)$ |
+
+The table requires $O(n \log n)$ space; each query uses constant additional space beyond the table.

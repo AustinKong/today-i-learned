@@ -3,15 +3,15 @@ title: Python Assignment Semantics
 category: Programming Languages
 ---
 
-In Python, assignment has a few quirks to take note of, especially for tuple assignment:
+In Python, assignment has a few quirks, especially for tuple assignment:
 
-- RHS is evaluated before any assignment
-- LHS targets are assigned left-to-right
-- Augmented assignment isn't always the same as normal assignment
+- The right-hand side (RHS) is evaluated before any assignment.
+- The left-hand side (LHS) targets are assigned from left to right.
+- Augmented assignment isn't always the same as normal assignment.
 
 ## RHS is Evaluated Before Assignment, LHS is Assigned Left-to-Right
 
-Tuple assignment doesn't happen "simultaneously", instead Python first evaluates ("snapshots") very expression on the RHS, then assigns the resulting values to LHS from left-to-right.
+Tuple assignment doesn't happen "simultaneously." Instead, Python first evaluates (or "snapshots") every expression on the RHS, then assigns the resulting values to LHS targets from left to right.
 
 This has implications when reversing a linked list:
 
@@ -25,15 +25,15 @@ prev, curr, curr.next = curr, curr.next, prev
 curr, prev, curr.next = curr.next, curr, prev
 ```
 
-Consider case 3, the interpreter first snapshots RHS to produce `temp1, temp2, temp3 = (curr, curr.next, prev)`. Then, it does assignment left-to-right:
+In case 3, the interpreter first snapshots the RHS as `temp1, temp2, temp3 = (curr, curr.next, prev)`. It then assigns the values from left to right:
 
-![Linked List](./assets/linked-list.excalidraw)
+![Linked-list assignment showing left-to-right target updates](./assets/linked-list.excalidraw)
 
-Rule of thumb: When in doubt, write out line-by-line instead of relying on tuple assignment.
+When in doubt, write the operations line by line instead of relying on tuple assignment.
 
 ### Augmented Assignment vs Normal Assignment
 
-In some cases, augmented assignment (`+=`, `*=`) might produce different results than normal assignment. Consider:
+In some cases, augmented assignment (such as `+=` or `*=`) produces different results from normal assignment. Consider:
 
 ```python
 # Augmented assignment
@@ -49,6 +49,6 @@ print(x) # [1]
 print(y) # []
 ```
 
-Augmented assignment (`+=`, `*=`, etc.) first attempts to call the in-place special method (such as `__iadd__`). If that method exists and performs an in-place update, other references to the same mutable object will observe the change. If `__iadd__` is not implemented (or returns `NotImplemented`), Python falls back to the normal operation (`__add__`) and rebinds the variable to the result.
+Augmented assignment first attempts to call the in-place special method, such as `__iadd__`. If that method exists and performs an in-place update, other references to the same mutable object observe the change. If `__iadd__` isn't implemented or returns `NotImplemented`, Python falls back to the normal operation (`__add__`) and rebinds the variable to the result.
 
-For immutable built-in types like int, str, and tuple, `+=` necessarily creates a new object because the original object cannot be modified. For mutable built-in types like list, set, and dict, the in-place operators typically modify the existing object.
+For immutable built-in types such as `int`, `str`, and `tuple`, `+=` necessarily creates a new object because the original object can't be modified. For mutable built-in types such as `list`, `set`, and `dict`, the in-place operators typically modify the existing object.

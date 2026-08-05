@@ -3,22 +3,24 @@ title: Database Replication
 category: Database Systems
 ---
 
-Database replication is the process of keeping copies of the same data on multiple machines connected over a network.
+*Database replication* is the process of keeping copies of the same data on multiple machines connected over a network.
 
-Each machine that stores a copy of the data is called a replica.
+Each machine that stores a copy of the data is called a *replica*.
 
-Benefits of replication:
+Replication provides several benefits:
 
-- Latency: Keep data geographically close to users.
-- Availability: Continue serving requests if some machines fail.
-- Read throughput: Serve read requests from multiple replicas.
-- Durability: Keep redundant copies of data.
+- Replication reduces latency by keeping data geographically close to users.
+- Replication improves availability by continuing to serve requests if some machines fail.
+- Replication increases read throughput by serving read requests from multiple replicas.
+- Replication improves durability by keeping redundant copies of data.
 
 > A replica is not necessarily a copy of a "main" database. The primary database is also a replica. "Replica" simply means a node that stores a copy of the replicated data.
 
 Replication delay and independent writers lead to the guarantees discussed in [[Eventual Consistency]] and the reconciliation strategies in [[Write Conflicts]].
 
 ## Synchronous and Asynchronous Replication
+
+The following sequence diagram contrasts when *synchronous replication* and *asynchronous replication* report a write as successful:
 
 ```mermaid
 ---
@@ -46,9 +48,7 @@ sequenceDiagram
     Follower2-->>Leader: OK
 ```
 
-In synchronous replication, the leader waits for at least one follower to confirm that it has received the write before reporting success to the client.
-
-In asynchronous replication, the leader reports success to the client without waiting for followers.
+Synchronous replication waits for an acknowledgement from at least one follower before reporting success, whereas asynchronous replication reports success without waiting for followers.
 
 | Replication Mode | Benefit | Cost |
 | --- | --- | --- |
@@ -63,9 +63,13 @@ This gives the system at least two up-to-date copies of committed data without r
 
 ## Single-Leader Replication
 
-![Single-Leader Replication](./assets/single-leader-replication.excalidraw)
+The following diagram shows how a single leader receives writes and replicates them to followers:
 
-In single-leader replication (or active-passive replication, master-slave replication) one replica is designated as the leader.
+![Single-leader replication showing writes routed through one leader](./assets/single-leader-replication.excalidraw)
+
+The leader establishes the write order, and followers apply the resulting changes in that order.
+
+In *single-leader replication* (also called active-passive replication or master-slave replication), one replica is designated as the leader.
 
 All write requests are sent to the leader. The leader writes the change locally, then sends the change to the other replicas through a replication log or change stream.
 
@@ -73,7 +77,7 @@ The other replicas are called followers. They apply the changes from the leader 
 
 ### Setting Up a New Follower
 
-A new follower cannot usually start by reading the leader's data file while writes are happening. The data might change halfway through the copy.
+A new follower can't usually start by reading the leader's data file while writes are happening. The data might change halfway through the copy.
 
 Instead, a typical setup process is:
 
@@ -93,7 +97,7 @@ If the leader fails, one of the followers must be promoted to become the new lea
 
 A typical failover process is:
 
-1. Detect that the leader has failed. Most systems use timeout-based failure detection, nodes bounce messages back-and-forth, if a node is unreachable for a period, it is assumed dead.
+1. Detect that the leader has failed. Most systems use timeout-based failure detection: nodes exchange messages, and a node is assumed dead if it is unreachable for a period.
 2. Choose a follower to become the new leader. To minimize data loss, especially in asynchronous replication, the follower with most up-to-date data is promoted.
 3. Reconfigure clients and followers to use the new leader.
 
@@ -107,11 +111,15 @@ Automatic failover usually requires some form of coordination or consensus, othe
 
 ## Multi-Leader Replication
 
-![Multi-Leader Replication](./assets/multi-leader-replication.excalidraw)
+The following diagram shows how multiple leaders accept local writes and replicate them to one another:
 
-In multi-leader replication, more than one replica can accept writes. Each leader processes local writes and replicates those writes to the other leaders.
+![Multi-leader replication showing writes exchanged between leaders](./assets/multi-leader-replication.excalidraw)
 
-> This does not mean every replica must accept writes. A common deployment is to have one write-accepting leader per cluster, with read-only followers inside each cluster. The leaders replicate writes to each other, while local followers replicate from their cluster's leader.
+Each leader establishes a local write order, so concurrent writes may need to be reconciled.
+
+In *multi-leader replication*, more than one replica can accept writes. Each leader processes local writes and replicates those writes to the other leaders.
+
+> This doesn't mean every replica must accept writes. A common deployment is to have one write-accepting leader per cluster, with read-only followers inside each cluster. The leaders replicate writes to each other, while local followers replicate from their cluster's leader.
 
 The main benefits are:
 
@@ -123,9 +131,9 @@ The main benefits are:
 
 ### Multi-Leader Topologies
 
-![Multi-Leader Topologies](./assets/multi-leader-topologies.excalidraw)
+The following diagram compares circular, star, and all-to-all multi-leader topologies:
 
-Common topologies include circular, star, and all-to-all topologies.
+![Circular, star, and all-to-all multi-leader topologies](./assets/multi-leader-topologies.excalidraw)
 
 Circular and star topologies are simpler, but one failed node can interrupt replication between other nodes.
 
@@ -137,9 +145,13 @@ Conceptually, the record can have a "seen-by" set consisting of replica IDs. If 
 
 ## Leaderless Replication
 
-![Leaderless Replication](./assets/leaderless-replication.excalidraw)
+The following diagram shows how a leaderless system sends a request to multiple replicas without routing every write through one leader:
 
-In leaderless replication, there is no special leader that accepts all writes. Instead, a write (and also read) is sent to multiple replicas.
+![Leaderless replication showing a request sent to multiple replicas](./assets/leaderless-replication.excalidraw)
+
+Because no single leader establishes the order, replicas may need versions, timestamps, or conflict-resolution rules to reconcile writes.
+
+In *leaderless replication*, there is no special leader that accepts all writes. Instead, a write (and also read) is sent to multiple replicas.
 
 In some systems, the client sends writes directly to several replicas. In other systems, a coordinator node does this on behalf of the client.
 
@@ -153,9 +165,11 @@ In some systems, the client sends writes directly to several replicas. In other 
 
 The difference between multi-leader and leaderless is that the write is accepted by multiple replicas, rather than being first accepted by one leader and then replicated outward.
 
-> I recommend [this video](https://youtu.be/Jy4Cm2WEZVg?si=wcMR6LTNwQLfBiAS) for the source of many concepts in this chapter. The rest of the note comes mainly from his playlist and DDIA book.
+> For an accessible explanation of many concepts in this chapter, see [this replication overview](https://youtu.be/Jy4Cm2WEZVg?si=wcMR6LTNwQLfBiAS). The rest of the note draws mainly from that playlist and the DDIA book.
 
 ### Read Repair
+
+The following sequence diagram shows how a client can repair a stale replica after observing a newer value:
 
 ```mermaid
 ---
@@ -189,17 +203,15 @@ sequenceDiagram
     R3-->>Client: Repaired value = 2
 ```
 
-In leaderless replication, replicas may become inconsistent.
+When a client reads from multiple replicas, it may notice that one replica has an older value. The client can then write the newer value back to the stale replica. This is called *read repair*.
 
-When a client reads from multiple replicas, it may notice that one replica has an older value. The client can then write the newer value back to the stale replica. This is called read repair.
-
-Read repair only fixes data that is read. If a value is never read, a stale replica may remain stale for a long time.
+Read repair updates the stale replica as part of a read, but it doesn't repair values that clients never read.
 
 ### Anti-Entropy
 
-Anti-entropy is a background process that compares replicas and repairs differences. It is often bidirectional: replicas exchange missing or newer data so they converge toward the same state.
+*Anti-entropy* is a background process that compares replicas and repairs differences. It is often bidirectional: replicas exchange missing or newer data so they converge toward the same state.
 
-Unlike replication logs, anti-entropy does not necessarily copy every write in the original order. For example, the replicas could be in such a state:
+Unlike replication logs, anti-entropy doesn't necessarily copy every write in the original order. For example, the replicas could be in the following state:
 
 ```text
 Replica A:
@@ -213,7 +225,7 @@ id_3 = "qux"
 id_4 = "quxx"
 ```
 
-To repair replicas A and B, we aim to identify that `id_1` differs, `id_2` exists on A not B, `id_4` exists on B not A; then repair only those rows. Notice that `id_3` is skipped entirely.
+To repair replicas A and B, identify that `id_1` differs, that `id_2` exists on A but not B, and that `id_4` exists on B but not A. Then repair only those rows; `id_3` is skipped entirely.
 
 A naive approach would compare every row between two replicas, but this is expensive.
 
@@ -229,13 +241,15 @@ To compare two replicas:
 
 This avoids transferring the entire dataset just to find a small number of differences. This process doesn't use Merkle proofs.
 
-> Merkle trees do not decide which replica is correct. They only help find differences efficiently. The system still needs rules for conflict resolution.
+> Merkle trees don't decide which replica is correct. They only help find differences efficiently. The system still needs rules for conflict resolution.
 
 ### Quorum Consistency
 
-![Quorum Consistency](./assets/quorum-consistency.excalidraw)
+The following diagram illustrates how quorum reads and writes can overlap on at least one replica:
 
-Leaderless systems often use quorum reads and writes. Let `n` be the number of replicas, `w` be the number of replicas that must acknowledge a write, `r` be the number of replicas queried for a read.
+![Quorum reads and writes overlapping on a replica](./assets/quorum-consistency.excalidraw)
+
+Leaderless systems often use *quorum reads and writes*. Let $n$ be the number of replicas, $w$ the number of replicas that must acknowledge a write, and $r$ the number of replicas queried for a read.
 
 The quorum condition is defined as:
 
@@ -245,21 +259,23 @@ $$
 
 This ensures that the read set and write set overlap in at least one replica.
 
-> Quorum reads do not use majority vote to decide the value. If two replicas return different values, the system usually chooses the value with the newest version, timestamp, or causal metadata.
+> Quorum reads don't use majority vote to decide the value. If two replicas return different values, the system usually chooses the value with the newest version, timestamp, or causal metadata.
 
-### Quorum Does Not Guarantee Strong Consistency
+### Quorum Doesn't Guarantee Strong Consistency
 
-But quorum condition alone does not guarantee strong consistency. There are several reasons:
+But the quorum condition alone doesn't guarantee strong consistency. There are several reasons:
 
 - Reads and writes may happen concurrently. A read may overlap with a write that has reached some replicas but not others yet.
 - Concurrent writes may still happen.
 - Sloppy quorum may break the quorum condition.
 
-So quorum reads and writes are better understood as a tunable consistency mechanism. Increasing `w` makes writes more durable but slower. Increasing `r` makes reads more likely to observe recent writes but slower. Decreasing `w` or `r` improves availability and latency, but increases the chance of stale reads.
+So quorum reads and writes are better understood as a tunable consistency mechanism. Increasing $w$ makes writes more durable but slower. Increasing $r$ makes reads more likely to observe recent writes but slower. Decreasing $w$ or $r$ improves availability and latency, but increases the chance of stale reads.
 
 One may even set $w + r \leq n$ as needed.
 
 ### Sloppy Quorum
+
+The following sequence diagram shows a write being stored temporarily on a non-home replica when a home replica is unavailable:
 
 ```mermaid
 ---
@@ -286,11 +302,11 @@ sequenceDiagram
     O1->>H2: Forward hinted write
 ```
 
-In normal quorum replication, a key has `n` intended replicas. These are sometimes called the key's home replicas.
+In normal quorum replication, a key has $n$ intended replicas. These are sometimes called the key's home replicas.
 
-With a normal quorum, reads and writes are sent to those home replicas. With sloppy quorum, if one of the home replicas is unavailable, the system can send the write to another healthy node instead.
+With a normal quorum, reads and writes are sent to those home replicas. With *sloppy quorum*, if one of the home replicas is unavailable, the system can send the write to another healthy node instead.
 
-Later, when one of the home replicas becomes available again, the data is forwarded to it. This is called hinted handoff.
+Later, when one of the home replicas becomes available again, the data is forwarded to it. This is called *hinted handoff*.
 
 Sloppy quorum improves availability because writes can succeed even when some home replicas are unavailable. The cost is weaker consistency. Even if $w + r > n$, a later read from the original home replicas may miss a write that was temporarily stored somewhere else.
 
@@ -298,37 +314,37 @@ Sloppy quorum improves availability because writes can succeed even when some ho
 
 Replication usually needs some representation of changes that can be sent between replicas.
 
-### Statement Based
+### Statement-Based Replication
 
-In statement-based replication, the leader logs every write statement (e.g. INSERT, UPDATE, DELETE) and sends it to followers. The follower re-executes the same statement.
+In *statement-based replication*, the leader logs every write statement (for example, `INSERT`, `UPDATE`, or `DELETE`) and sends it to followers. Each follower re-executes the same statement.
 
 This can be compact because the statement may be smaller than the resulting row changes.
 
-However, statement-based replication has problems with nondeterministic operations (e.g. `RAND()`, `NOW()`), and side effects (triggers, stored procedures that may behave differently per replica).
+However, statement-based replication has problems with nondeterministic operations (for example, `RAND()` and `NOW()`) and side effects such as triggers and stored procedures that may behave differently on each replica.
 
 ### WAL Shipping
 
-In [[Write Ahead Logging|write-ahead log]] shipping, the database sends WAL records to followers. This can be efficient because the database already writes WAL for durability and crash recovery.
+In [[Write Ahead Logging|write-ahead log]] shipping, the database sends records from its write-ahead log (WAL) to followers. This can be efficient because the database already writes WAL for durability and crash recovery.
 
 This is a physical replication method. The problem is that the WAL describes data at a very low level, making replication coupled to the database's storage format.
 
-This means WAL shipping usually requires the leader and followers to run compatible database versions. As a result, you usually cannot perform replica upgrades incrementally; instead, the entire network often must be taken down to perform upgrades simultaneously.
+WAL shipping usually requires the leader and followers to run compatible database versions. As a result, you can't always perform replica upgrades incrementally; instead, the entire network may need to be taken down for simultaneous upgrades.
 
 ### Logical Log Replication
 
-Logical log replication (also, row-based log replication) uses a higher-level change format that is decoupled from the physical storage layout.
+*Logical log replication* (also called row-based log replication) uses a higher-level change format that is decoupled from the physical storage layout.
 
 Instead of describing page-level storage changes, the log describes row-level changes:
 
-- Row insert: Log contains new values of columns. For statements like `NOW()`, it is evaluated to its value before being made into its log record.
-- Row delete: Log contains PK of the row.
-- Row update: Log contains PK of the row, and new values of all columns changed.
+- Row insert: The log contains new column values. For expressions such as `NOW()`, the database evaluates the expression before adding its value to the log record.
+- Row delete: The log contains the row's primary key.
+- Row update: The log contains the row's primary key and the new values of all changed columns.
 
 Logical logs can be kept backward compatible and can be parsed by external systems.
 
-### Trigger based replication
+### Trigger-Based Replication
 
-Trigger-based replication uses database triggers to capture changes.
+*Trigger-based replication* uses database triggers to capture changes.
 
 For example, a trigger can write changes into a separate table whenever a row is inserted, updated, or deleted. An external process can then read that table and replicate the changes elsewhere.
 

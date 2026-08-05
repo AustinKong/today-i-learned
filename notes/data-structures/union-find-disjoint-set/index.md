@@ -3,7 +3,7 @@ title: Union Find Disjoint Set
 category: Data Structures
 ---
 
-Union-Find Disjoint Set (UFDS), also known as Disjoint Set Union (DSU), is a data structure for maintaining a collection of disjoint sets.
+The *union-find* data structure, also known as disjoint-set union (DSU), or union-find disjoint set, maintains a collection of disjoint sets.
 
 It commonly supports two operations:
 
@@ -30,11 +30,11 @@ class UFDS:
             self.parent[ra] = rb
 ```
 
-The problem with this implementation is that `union` can arbitrarily create tall trees. And `find` must repeatedly walk tall trees to find the set representative.
+This implementation has two problems: `union` can arbitrarily create tall trees, and `find` must repeatedly walk those trees to find the set representative.
 
 ## Path Compression
 
-Path compression optimizes `find`.
+*Path compression* optimizes `find`.
 
 Whenever we call `find(x)`, all nodes visited on the way to the root are directly attached to the root.
 
@@ -45,15 +45,15 @@ def find(self, x):
     return self.parent[x]
 ```
 
-For example, given:
+The following diagram shows a tree before and after path compression:
 
-![Path compression](./assets/path-compression.excalidraw)
+![Tree before and after path compression](./assets/path-compression.excalidraw)
 
-Path compression does not avoid the cost of walking to the root the first time. It only makes future queries cheaper. It fixes bad trees after we access them, but it does not prevent bad trees from forming in the first place.
+Path compression doesn't avoid the cost of walking to the root the first time. It only makes future queries cheaper. It fixes bad trees after we access them, but it doesn't prevent bad trees from forming in the first place.
 
 ## Union by Rank
 
-Union by rank optimizes `union`.
+*Union by rank* optimizes `union`.
 
 Instead of arbitrarily attaching one root under another, we try to keep the tree shallow.
 
@@ -86,13 +86,13 @@ class UFDS:
                 self.rank[rb] += 1
 ```
 
-> The rank is not necessarily the true height after path compression. Once path compression rewires nodes directly to the root, the actual tree height may decrease, but the rank is usually left unchanged. It remains a useful approximation for future unions.
+> The rank isn't necessarily the true height after path compression. Once path compression rewires nodes directly to the root, the actual tree height may decrease, but the rank is usually left unchanged. It remains a useful approximation for future unions.
 
 ## Path Compression vs Union by Rank
 
 ### Why Path Compression Alone May Be Enough Sometimes
 
-At first, it seems like union by rank should always matter. But in some problems, path compression alone is practically enough.
+At first, it may seem that union by rank should always matter. However, path compression alone can be sufficient in some problems.
 
 Consider a problem where we first process all edges, then finally call `find` on every vertex once:
 
@@ -108,7 +108,7 @@ Even if the union operations create a terrible chain, the final loop touches eve
 
 The total work is still roughly linear in the number of vertices.
 
-In this access pattern, the expensive traversal is not as wasteful because we were going to touch every vertex anyway. That is why in some solutions, not implementing union by rank could lead to similar runtime performance.
+In this access pattern, the expensive traversal isn't as wasteful because we were going to touch every vertex anyway. That's why in some solutions, not implementing union by rank could lead to similar runtime performance.
 
 > An example of such a problem: [Count the Number of Complete Components](https://leetcode.com/problems/count-the-number-of-complete-components/).
 
@@ -146,7 +146,7 @@ Let $n$ be the number of elements and $m$ be the number of operations.
 | Union by rank only | Bad trees are prevented from forming. | `find` is $O(\log n)$. |
 | Union by rank + path compression | Trees are kept shallow and flattened over time. | Amortized $O(\alpha(n))$ per operation. |
 
-$\alpha(n)$ is the inverse Ackermann function. For all practical input sizes, it is effectively a very small constant.
+$\alpha(n)$ is the *inverse Ackermann function*. For all practical input sizes, it's effectively a very small constant.
 
 ## Union by Rank Variants
 
@@ -169,7 +169,7 @@ The rank only increases when two trees of equal rank are merged.
 
 ### Union by Size
 
-Union by size stores the number of nodes in each component.
+*Union by size* stores the number of nodes in each component.
 
 ```python
 if size[ra] < size[rb]:
@@ -181,7 +181,7 @@ size[ra] += size[rb]
 
 When merging two sets, attach the smaller component under the larger component.
 
-> For problems that already need to store the set/component size, it is more convenient to implement union by size instead.
+> For problems that already need to store the set/component size, it's more convenient to implement union by size instead.
 
 ### Arbitrary Union
 
@@ -193,4 +193,4 @@ parent[ra] = rb
 
 This is the simplest version, but it gives the weakest guarantees.
 
-With path compression, it may still be fine for many offline problems where all vertices are eventually touched. However, it is less safe for general-purpose UFDS usage.
+With path compression, it may still be fine for many offline problems where all vertices are eventually touched. However, it's less safe for general-purpose UFDS usage.

@@ -16,13 +16,13 @@ Time is useful in distributed systems for:
 - Log files and databases
 - Cache expiry
 
-A clock, in the context of distributed systems, is a source from which a system can obtain a timestamp. The two broad types of clocks are physical clocks and logical clocks.
+A *clock* is a source from which a distributed system can obtain a timestamp. The two broad types of clocks are *physical clocks* and *logical clocks*.
 
 ## Physical Clocks
 
 ### Quartz Clocks
 
-Quartz clocks resonate at a specific frequency. By counting their cycles, a computer can measure elapsed time.
+*Quartz clocks* resonate at a specific frequency. By counting their cycles, a computer can measure elapsed time.
 
 However, quartz clocks drift because of temperature changes and manufacturing differences. Drift is measured in parts per million (ppm):
 
@@ -34,11 +34,11 @@ Most computer clocks are accurate to within about 50 ppm.
 
 ### Atomic Clocks
 
-An atomic clock uses the resonance of caesium-133 atoms as its reference. It is more expensive, but incredibly precise.
+An *atomic clock* uses the resonance of cesium-133 atoms as its reference. It is more expensive but extremely precise.
 
 ### GPS Clocks
 
-GPS is another source of accurate time. GPS satellites carry atomic clocks and broadcast their time and position. A receiver can calculate the current time after accounting for signal-propagation delay, atmospheric effects, and relativity.
+*GPS* is another source of accurate time. GPS satellites carry atomic clocks and broadcast their time and position. A receiver can calculate the current time after accounting for signal-propagation delay, atmospheric effects, and relativity.
 
 > GPS is maintained by the U.S. Department of Defense. It was originally built for the Cold War and made available for civilian use in 2000. It is a global resource funded by the U.S., which can deny access in particular zones.
 
@@ -46,15 +46,15 @@ GPS is another source of accurate time. GPS satellites carry atomic clocks and b
 
 ### Greenwich Mean Time
 
-Greenwich Mean Time (GMT) corresponds to noon when the Sun is due south at the Greenwich meridian. It is based on astronomy and therefore tied to Earth's rotation, which is not constant.
+*Greenwich Mean Time* (GMT) corresponds to noon when the Sun is due south at the Greenwich meridian. It is based on astronomy and therefore tied to Earth's rotation, which isn't constant.
 
 ### International Atomic Time
 
-International Atomic Time (TAI, from the French _temps atomique international_) is based on a weighted average of hundreds of atomic clocks worldwide. One TAI second (SI second) is defined as 9,192,631,770 periods of the caesium-133 resonant frequency.
+*International Atomic Time* (TAI, from the French *temps atomique international*) is based on a weighted average of hundreds of atomic clocks worldwide. One TAI second (SI second) is defined as 9,192,631,770 periods of the cesium-133 resonant frequency.
 
 ### Coordinated Universal Time
 
-Coordinated Universal Time (UTC) is TAI adjusted to account for Earth's rotation. UTC normally ticks at the same rate as TAI. However, when Earth's rotation drifts far enough from atomic time, a leap second is inserted—or, in theory, removed, although a negative leap second has never occurred.
+*Coordinated Universal Time* (UTC) is TAI adjusted to account for Earth's rotation. UTC normally ticks at the same rate as TAI. However, when Earth's rotation drifts far enough from atomic time, a *leap second* is inserted or, in theory, removed, although a negative leap second has never occurred.
 
 Leap seconds are planned and announced well in advance:
 
@@ -79,10 +79,10 @@ Recent discussions have proposed removing leap seconds because they can disrupt 
 
 Computers commonly use two time representations:
 
-1. Unix time: the number of seconds since 1 January 1970 00:00:00 UTC (the _epoch_), with leap seconds ignored. As a result, Unix timestamps cannot represent a leap second and do not map one-to-one to UTC during one.
-2. ISO 8601: a date and time written as year, month, day, hour, minute, and second, together with a time-zone offset relative to UTC.
+1. *Unix time*: The number of seconds since 1 January 1970 00:00:00 UTC (the *epoch*), with leap seconds ignored. As a result, Unix timestamps can't represent a leap second and don't map one-to-one to UTC during one.
+2. *ISO 8601*: A date and time written as year, month, day, hour, minute, and second, together with a time-zone offset relative to UTC.
 
-Most software ignores leap seconds. Operating systems and distributed systems, however, still need to account for them. A pragmatic solution is _leap smearing_: spread the extra second over a period such as a day, instead of suddenly stepping the clock by one second.
+Most software ignores leap seconds. Operating systems and distributed systems, however, still need to account for them. A pragmatic solution is *leap smearing*: spread the extra second over a period such as a day instead of suddenly stepping the clock by one second.
 
 ## Clock Types
 
@@ -90,15 +90,15 @@ Systems expose different clocks for different jobs. A synchronized clock is usef
 
 ### Time-of-Day Clocks
 
-A time-of-day clock measures time since a fixed date, such as the Unix epoch. Its timestamps can be compared across nodes, provided the clocks are sufficiently synchronized.
+A *time-of-day clock* (also called wall-clock) measures time since a fixed date, such as the Unix epoch. Its timestamps can be compared across nodes, provided the clocks are sufficiently synchronized.
 
 Because it is adjusted to track civil time, it can jump forwards or backwards. NTP corrections, manual changes, and leap-second handling may all affect it.
 
 ### Monotonic Clocks
 
-A monotonic clock measures time since an arbitrary point, such as machine boot. It only moves forward at a steady rate, making it suitable for durations, timeouts, and retry intervals.
+A *monotonic clock* measures time since an arbitrary point, such as machine boot. It only moves forward at a steady rate, making it suitable for durations, timeouts, and retry intervals.
 
-Its values cannot be meaningfully compared across nodes because each machine has its own arbitrary starting point.
+Its values can't be meaningfully compared across nodes because each machine has its own arbitrary starting point.
 
 ### Measuring Elapsed Time
 
@@ -118,13 +118,13 @@ start_time = time.monotonic()
 elapsed_seconds = time.monotonic() - start_time
 ```
 
-If NTP steps the clock backwards between two time-of-day calls, the calculated duration can be negative. The monotonic clock avoids this because it does not move backwards.
+If NTP steps the clock backwards between two time-of-day calls, the calculated duration can be negative. The monotonic clock avoids this because it doesn't move backwards.
 
 ## Clock Synchronization
 
-Computers track time with quartz clocks. Because those clocks drift, their error grows over time. _Clock skew_ is the difference between two clocks at a particular point in time.
+Computers track time with quartz clocks. Because those clocks drift, their error grows over time. *Clock skew* is the difference between two clocks at a particular point in time.
 
-To reduce clock skew, computers periodically obtain the current time from a server with a more accurate source, such as an atomic clock or GPS receiver. Two common protocols are the Network Time Protocol (NTP) and Precision Time Protocol (PTP).
+To reduce clock skew, computers periodically obtain the current time from a server with a more accurate source, such as an atomic clock or GPS receiver. Two common protocols are the *Network Time Protocol* (NTP) and *Precision Time Protocol* (PTP).
 
 ### Network Time Protocol
 
@@ -136,8 +136,8 @@ NTP is intended to synchronize participating computers to within a few milliseco
 
 NTP uses a hierarchy of clock servers arranged into strata:
 
-1. Stratum 0: An atomic clock or GPS receiver. These devices are also known as _reference clocks_.
-2. Stratum 1: A server synchronized directly with a stratum 0 device. These are _primary time servers_.
+1. Stratum 0: An atomic clock or GPS receiver. These devices are also known as *reference clocks*.
+2. Stratum 1: A server synchronized directly with a stratum 0 device. These are *primary time servers*.
 3. Stratum 2: A server synchronized with a stratum 1 server.
 4. Stratum $n$: A server synchronized with a stratum $n - 1$ server.
 
@@ -147,7 +147,9 @@ The upper limit is stratum 15. Stratum 16 indicates that a device is unsynchroni
 
 Start with one request-response exchange. The client records when it sends the request ($t_1$) and receives the response ($t_4$). The server records when it receives the request ($t_2$) and sends the response ($t_3$).
 
-![NTP Request Response](./assets/ntp-req-res.png)
+The following image shows the timestamps exchanged during an NTP request and response:
+
+![NTP request and response timestamps](./assets/ntp-req-res.png)
 
 Given the timestamps, the round-trip network delay is:
 
@@ -167,7 +169,7 @@ $$
 \theta = t_3 + \frac{\delta}{2} - t_4 = \frac{(t_2 - t_1) + (t_3 - t_4)}{2}
 $$
 
-This assumes that the request and response each take half of the round-trip delay. Because the clocks are not yet synchronized, NTP cannot know the exact request and response delays separately.
+This assumes that the request and response each take half of the round-trip delay. Because the clocks aren't yet synchronized, NTP can't know the exact request and response delays separately.
 
 #### Selecting and Correcting
 
@@ -175,17 +177,19 @@ The calculation above produces one offset and delay sample for one server exchan
 
 For each server, NTP filters the samples to reduce the effect of variable network latency. It then compares the candidate servers, rejects outliers, and derives a trusted system offset from the remaining consistent sources. This reduces random error and protects the client from a bad server.
 
-> NTP does not necessarily take a simple arithmetic average of every server offset. Its filtering and source-selection algorithms give more weight to reliable, mutually consistent sources.
+> NTP doesn't necessarily take a simple arithmetic average of every server offset. Its filtering and source-selection algorithms give more weight to reliable, mutually consistent sources.
 
 Once a client has an offset estimate, it disciplines its local clock. The exact policy is implementation- and configuration-dependent. Traditional `ntpd` defaults use a 128 ms step threshold and a 1,000 s panic threshold:
 
-- Below 128 ms, _slew_ the clock by gradually changing its oscillation rate by up to 500ppm until the offset disappears.
-- At or above 128 ms, _step_ the clock by immediately setting it to the estimated time.
+- Below 128 ms, *slew* the clock by gradually changing its oscillation rate by up to 500 ppm until the offset disappears.
+- At or above 128 ms, *step* the clock by immediately setting it to the estimated time.
 - At or above the 1,000 s panic threshold, `ntpd` normally exits and requires operator intervention.
 
 NTP then repeats the process. The polling interval is adaptive: stable clocks are polled less frequently, while unstable clocks are polled more frequently. A traditional `ntpd` maximum poll interval is 1,024 seconds, or about 17.1 minutes, but it can be configured differently.
 
-![Windows NTP Server Setting](./assets/win-ntp-server.png)
+The following screenshot shows an operating-system setting that enables automatic time synchronization:
+
+![Windows setting for automatic NTP time synchronization](./assets/win-ntp-server.png)
 
 Almost all operating systems support NTP through a setting such as “Set time automatically,” which lets the user choose an NTP server.
 
@@ -193,15 +197,15 @@ Almost all operating systems support NTP through a setting such as “Set time a
 
 The Precision Time Protocol (PTP) is designed for much more accurate clock synchronization within a local network, often reaching sub-microsecond accuracy.
 
-Like NTP, PTP exchanges timestamped messages to estimate delay and clock offset. Unlike NTP, it assumes a more controlled network and uses a _grandmaster_ clock selected from participating devices. Network hardware, such as switches and network interface cards, can timestamp packets close to the wire and compensate for the time spent traversing the network.
+Like NTP, PTP exchanges timestamped messages to estimate delay and clock offset. Unlike NTP, it assumes a more controlled network and uses a *grandmaster* clock selected from participating devices. Network hardware, such as switches and network interface cards, can timestamp packets close to the wire and compensate for the time spent traversing the network.
 
 PTP is commonly used where precise coordination matters, such as financial trading, industrial automation, telecommunications, and media production. NTP is the more practical general-purpose choice for synchronizing clocks across the public internet.
 
 ## Causality and Happens-Before
 
-Physical clocks cannot reliably establish causality. Two machines may have clock skew, and even perfectly synchronized physical clocks cannot tell whether one event caused another.
+Physical clocks can't reliably establish causality. Two machines may have clock skew, and even perfectly synchronized physical clocks can't tell whether one event caused another.
 
-The _happens-before_ relation, written $a \to b$, is defined by three rules:
+The *happens-before* relation, written $a \to b$, is defined by three rules:
 
 1. If two events occur in the same process, their program order determines the relation.
 2. Sending a message happens before receiving that message.
@@ -209,17 +213,19 @@ The _happens-before_ relation, written $a \to b$, is defined by three rules:
 
 Two events are [[Concurrency|concurrent]] when neither $a \to b$ nor $b \to a$. They may occur at different physical times; in this context, “concurrent” means that neither event could have influenced the other.
 
-> A good explanation of happens-before and ideal ordering can be seen [here](https://youtu.be/YqNGbvFHoKM?si=Mnj7jxYcOhbfnItL&t=116).
+> For an explanation of happens-before and ideal ordering, see [this discussion of logical time](https://youtu.be/YqNGbvFHoKM?si=Mnj7jxYcOhbfnItL&t=116).
 
 ## Logical Clocks
 
-A logical clock does not measure wall-clock time or elapsed duration. Instead, it assigns timestamps to events so that a system can reason about the causal order.
+A *logical clock* doesn't measure wall-clock time or elapsed duration. Instead, it assigns timestamps to events so that a system can reason about causal order.
 
 ### Lamport Clocks
 
-A Lamport clock is a single integer counter $t$ maintained by each process. Before every local event, the process increments $t$. Let $L(e)$ be the value of $t$ immediately after it is incremented for event $e$; this is the Lamport timestamp attached to $e$.
+A *Lamport clock* is a single integer counter $t$ maintained by each process. Before every local event, the process increments $t$. Let $L(e)$ be the value of $t$ immediately after it is incremented for event $e$; this is the Lamport timestamp attached to $e$.
 
-![Lamport Clock](./assets/lamport-clock.png)
+The following image illustrates a Lamport clock advancing across local events and message exchanges:
+
+![Lamport clock advancing across events and messages](./assets/lamport-clock.png)
 
 Each process follows these rules:
 
@@ -232,9 +238,9 @@ $$
 a \to b \implies L(a) < L(b)
 $$
 
-The converse is not true. If $L(a) < L(b)$, $a$ and $b$ may still be concurrent; the clock gives a possible ordering, not proof of causality.
+The converse isn't true. If $L(a) < L(b)$, $a$ and $b$ may still be concurrent; the clock gives a possible ordering, not proof of causality.
 
-The Lamport timestamp alone does not uniquely identify an event: two different nodes can produce the same timestamp. Let $N(e)$ be the unique ID of the node where event $e$ occurred. Because each node increments its counter before every event, that node cannot produce two events with the same $L(e)$. Therefore, the pair $(L(e), N(e))$ uniquely identifies an event.
+The Lamport timestamp alone doesn't uniquely identify an event: two different nodes can produce the same timestamp. Let $N(e)$ be the unique ID of the node where event $e$ occurred. Because each node increments its counter before every event, that node can't produce two events with the same $L(e)$. Therefore, the pair $(L(e), N(e))$ uniquely identifies an event.
 
 To produce a deterministic total order, a system can sort events by $(L(e), N(e))$. This breaks ties between concurrent events, but the resulting order is arbitrary and should not be mistaken for a causal relationship.
 
@@ -242,7 +248,7 @@ To produce a deterministic total order, a system can sort events by $(L(e), N(e)
 
 ### Vector Clocks
 
-Where a Lamport clock uses one scalar, a vector clock keeps one counter per node. Assume a system of $n$ nodes:
+Where a Lamport clock uses one scalar, a *vector clock* keeps one counter per node. Assume a system of $n$ nodes:
 
 $$
 N = \langle N_1, N_2, \ldots, N_n \rangle
@@ -256,7 +262,9 @@ $$
 
 The component $t_i$ records how many events from node $N_i$ the current node has observed. The vector timestamp $V(e)$ of an event $e$ is the value of $T$ immediately after processing $e$.
 
-![Vector Clock](./assets/vector-clock.png)
+The following image illustrates the vector timestamp carried by events across multiple nodes:
+
+![Vector clock tracking event history across nodes](./assets/vector-clock.png)
 
 Each node follows these rules:
 
@@ -277,15 +285,17 @@ Applied to event timestamps:
 - $V(a) < V(b)$ if and only if $a \to b$.
 - If $V(a) \parallel V(b)$, then $a$ and $b$ are concurrent.
 
-A vector timestamp alone does not necessarily uniquely identify an event: different nodes can produce the same vector after observing the same causal history. As with Lamport clocks, the pair $(V(e), N(e))$ uniquely identifies an event, because the originating node increments its own component before every event.
+A vector timestamp alone doesn't necessarily uniquely identify an event: different nodes can produce the same vector after observing the same causal history. As with Lamport clocks, the pair $(V(e), N(e))$ uniquely identifies an event, because the originating node increments its own component before every event.
 
 Unlike Lamport clocks, vector clocks can distinguish a causal relationship from concurrency.
 
 ## Hybrid Logical Clocks
 
-A hybrid logical clock (HLC) combines a physical clock with a small logical counter. The physical part keeps the timestamp close to wall time, while the logical part preserves causal ordering when physical time does not move forward cleanly. In practice, HLC gives a compact timestamp that usually resembles real time while still carrying ordering information for distributed systems.
+A *hybrid logical clock* (HLC) combines a physical clock with a small logical counter. The physical part keeps the timestamp close to wall time, while the logical part preserves causal ordering when physical time doesn't move forward cleanly. In practice, HLC gives a compact timestamp that usually resembles real time while still carrying ordering information for distributed systems.
 
-![Hybrid Logical Clock](./assets/hlc.excalidraw)
+The following diagram shows how a hybrid logical clock combines physical time with a logical counter:
+
+![Hybrid logical clock combining physical time and a logical counter](./assets/hlc.excalidraw)
 
 An HLC timestamp is usually written as a pair:
 
@@ -318,10 +328,10 @@ On receiving a message with timestamp $(p_m, c_m)$:
 6. Otherwise, $p = T$ is strictly greater than both stored physical components, so set $c \leftarrow 0$.
 7. The updated pair $(p, c)$ is the receive event’s timestamp.
 
-> A video explanation of HLB [here](https://youtu.be/YqNGbvFHoKM?si=-nR93Rd-v5ZXz5Pk&t=263).
+> For a video explanation of HLC, see [this discussion of hybrid logical clocks](https://youtu.be/YqNGbvFHoKM?si=-nR93Rd-v5ZXz5Pk&t=263).
 
 Drawbacks of HLC:
 
-- Like Lamport clocks, HLC timestamps preserve causal order but cannot distinguish causality from concurrency. To make equal HLC timestamps into a total order, add a node ID as a tie-breaker.
-- It still depends on reasonably synchronized physical clocks. If one machine's clock is far ahead because of clock skew, its HLC timestamps will also be far ahead. [See this](https://youtu.be/YqNGbvFHoKM?si=_ahct3mqtudzflrw&t=587).
+- Like Lamport clocks, HLC timestamps preserve causal order but can't distinguish causality from concurrency. To make equal HLC timestamps into a total order, add a node ID as a tie-breaker.
+- It still depends on reasonably synchronized physical clocks. If one machine's clock is far ahead, its HLC timestamps will also be far ahead. See [this discussion of HLC clock synchronization](https://youtu.be/YqNGbvFHoKM?si=_ahct3mqtudzflrw&t=587).
 - HLC timestamps look like real timestamps, but are only as accurate as the underlying clock synchronization.

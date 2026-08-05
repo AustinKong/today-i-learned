@@ -3,24 +3,26 @@ title: Eventual Consistency
 category: Database Systems
 ---
 
-Eventual consistency is a consistency model where different replicas, caches, indexes, or derived views are allowed to temporarily disagree.
+*Eventual consistency* is a consistency model where different replicas, caches, indexes, or derived views are allowed to temporarily disagree.
 
-The main guarantee is eventual convergence: if no new writes occur, all non-faulty replicas should eventually converge to the same state.
+The main guarantee is *eventual convergence*: if no new writes occur, all non-faulty replicas should eventually converge to the same state.
 
 Eventual consistency is often used to improve availability, latency, and throughput. Instead of synchronously coordinating every read and write across the whole system, different nodes can process operations independently and synchronize later.
 
 Eventual consistency commonly creates two major problem categories:
 
 1. Stale reads: A read observes an older version of data because the latest write has not reached every replica yet.
-2. Concurrent writes: Multiple writes are accepted concurrently without immediate coordination, the system later needs to reconcile them.
+2. Concurrent writes: Multiple writes are accepted concurrently without immediate coordination, so the system later needs to reconcile them.
 
 ## Stale Reads
 
-Stale reads are allowed under eventual consistency. This is a tradeoff we accept for better availability, latency, or throughput. However, additional guarantees can make eventual consistency less confusing (discussed below.)
+Stale reads are allowed under eventual consistency. This is a trade-off accepted for better availability, latency, or throughput. However, additional guarantees can make eventual consistency less confusing (discussed below).
 
-> Note that implementing the below guarantees does not "upgrade" an eventually consistent system to be strongly consistent, these are instead weaker guarantees that reduce the worst problems caused by eventual consistency.
+> Implementing the guarantees below doesn't "upgrade" an eventually consistent system to strong consistency. These are weaker guarantees that reduce the worst problems caused by eventual consistency.
 
 ### Read Your Own Writes
+
+The following sequence diagram shows how a user can read stale data from a follower immediately after writing to the leader:
 
 ```mermaid
 ---
@@ -43,7 +45,7 @@ sequenceDiagram
     Leader-)Follower: Asynchronous replication
 ```
 
-Read-your-own-writes consistency (or read-after-write consistency) means that after a user writes some data, that same user should be able to read their own update.
+*Read-your-own-writes consistency* (also called read-after-write consistency) means that after a user writes data, that same user should be able to read their own update.
 
 Without read-your-own-writes consistency, the system appears to have ignored or lost the user's action.
 
@@ -70,6 +72,8 @@ This avoids always reading from the leader, but it requires the system to know h
 
 ### Monotonic Reads
 
+The following sequence diagram shows a user observing a newer value and then an older value after reading from different replicas:
+
 ```mermaid
 ---
 caption: "Without monotonic reads"
@@ -95,7 +99,7 @@ sequenceDiagram
     Leader-)Follower: Asynchronous replication
 ```
 
-Monotonic reads means that once a user has seen a certain version of data, they should not later see an older version. Without monotonic reads, time appears to move backward.
+*Monotonic reads* means that once a user has seen a certain version of data, they shouldn't later see an older version. Without monotonic reads, time appears to move backward.
 
 #### Solutions
 
@@ -108,6 +112,8 @@ Another strategy is to track the highest version the user has observed and only 
 This is similar to the read-your-own-writes strategy, but instead of tracking only the user's latest write, the client/session tracks both writes and reads.
 
 ### Consistent Prefix Reads
+
+The following sequence diagram shows a reader observing a later message before an earlier message on which it depends:
 
 ```mermaid
 ---
@@ -138,18 +144,18 @@ sequenceDiagram
     P1-->>User3: ["how are you?", "fine thank you!"]
 ```
 
-> [1] Stores messages for odd-numbered user IDs.  
+> [1] Stores messages for odd-numbered user IDs.
 > [2] Stores messages for even-numbered user IDs.
 
-Consistent prefix reads means that if writes happen in a certain order, readers should not observe a later write without also seeing the earlier writes that it depends on.
+*Consistent prefix reads* means that if writes happen in a certain order, readers shouldn't observe a later write without also seeing the earlier writes on which it depends.
 
-In other words, users should not see effects before causes.
+In other words, users shouldn't see effects before causes.
 
-For example, if writes happened in order `W1 → W2 → W3`, a reader should only see a prefix of that order. Such valid prefixes include: `[]`, `[W1]`. `[W1, W2]` or `[W1, W2, W3]`; but invalid reads include `[W2]`, `[W1, W3]`, `[W3]` etc.
+For example, if writes happen in order $W_1 \rightarrow W_2 \rightarrow W_3$, a reader should see only a prefix of that order. Valid prefixes include $emptyset$, $[W_1]$, $[W_1, W_2]$, and $[W_1, W_2, W_3]$; invalid reads include $[W_2]$, $[W_1, W_3]$, and $[W_3]$.
 
-In the example above, the invalid read `["fine thank you!"]` appears for a moment, before it corrects to a valid prefix `["how are you?", "fine thank you!"]`. This is a violation of causality, "how are you?" causes "fine thank you!"; showing the effect ("fine thank you") without the cause ("how are you?") is a violation of causality.
+In the example above, the invalid read `["fine thank you!"]` appears briefly before it becomes the valid prefix `["how are you?", "fine thank you!"]`. This violates causality because "how are you?" causes "fine thank you!"; showing the effect without the cause violates that causal order.
 
-> Consistent prefix reads are commmonly discussed with partitions, but it can happen with multi-leader or leaderless setups as well.
+> Consistent prefix reads are commonly discussed with partitions, but they can also be violated in multi-leader or leaderless setups.
 
 ### Solutions
 
@@ -163,15 +169,15 @@ In the example above, a solution would be to recognize that messages within a ch
 
 ### Causal Dependencies in Replication
 
-In replication, a write is [[Time|causally dependent]] on another write when a client creates it after observing the earlier write.
+In replication, a write is [[Time|causally dependent]] on another write when a client creates it after observing the earlier write. This relationship is a *causal dependency*.
 
-The following example from DDIA shows those dependencies in a replicated system:
+The following example from DDIA shows causal dependencies in a replicated system:
 
-![Causality Example 1](./assets/ddia-causal-dependency-example-1.jpg)
+![Causality example showing dependencies between replicated writes](./assets/ddia-causal-dependency-example-1.jpg)
 
-Their causal dependency graph is as follows:
+The following graph makes those causal relationships explicit:
 
-![Causality Graph](./assets/ddia-causal-dependency-example-2.jpg)
+![Causal dependency graph for replicated writes](./assets/ddia-causal-dependency-example-2.jpg)
 
 The following causal-dependency algorithm uses this distinction to decide whether an incoming write replaces an existing value or must be kept as a concurrent sibling.
 
@@ -186,34 +192,36 @@ A client should read before writing, and when it writes, it must include the ver
 
 The server uses the submitted version number to decide whether the new write overwrites old values or conflicts with existing values.
 
-When a write arrives with version N:
+When a write arrives with version $N$:
 
 1. The server treats the write as being based on all values at version N or below.
 2. The server can discard values whose versions are $\leq N$, because the client has seen and replaced them.
 3. The server must keep values whose versions are $> N$, because those values were created after the client's read and are therefore concurrent with the client's write.
-4. The server assigns a new version number (current version number + 1) to the new value.
-5. The server returns all current sibling values to the client. (This step can be skipped if we ensure client always reads before writing.)
+4. The server assigns a new version number (the current version number plus $1$) to the new value.
+5. The server returns all current sibling values to the client. This step can be skipped if the client always reads before writing.
 
 This algorithm identifies causal dependencies but still requires one of the resolution strategies in [[Write Conflicts]].
 
-> This algorithm can be seen in the "Causality Example 1" sequence diagram above. It stores one or more current values because conflict resolution is assumed to happen in the application. Database-layer approaches such as CRDTs can resolve those values within the data type instead.
+> This algorithm can be seen in the "Causality Example 1" sequence diagram above. It stores one or more current values because conflict resolution is assumed to happen in the application. Database-layer approaches such as [[Write Conflicts|conflict-free replicated data types]] (CRDTs) can resolve those values within the data type instead.
 
 ### Version Vectors in Replication
 
-![Version Vectors](./assets/version-vectors.excalidraw)
+The following diagram illustrates how version vectors record updates from different replicas:
 
-A version vector is a [[Time|vector clock]] attached to a particular data item or version.
+![Version vector showing updates from multiple replicas](./assets/version-vectors.excalidraw)
+
+*A version vector* is a [[Time|vector clock]] attached to a particular data item or version.
 
 In a database, the vector records which updates this value already includes. When a replica receives another version of the same item, it applies those rules to decide whether the incoming version supersedes the local value, is stale, or is concurrent. Concurrent versions must be kept as siblings or resolved using a strategy from [[Write Conflicts]].
 
 ## Strong Eventual Consistency
 
-Basic eventual consistency says replicas should eventually converge, but it does not always explain how convergence is guaranteed when updates arrive in different orders.
+Basic eventual consistency says replicas should eventually converge, but it doesn't always explain how convergence is guaranteed when updates arrive in different orders.
 
-Strong eventual consistency is a stronger form of eventual consistency. It requires two properties:
+*Strong eventual consistency* is a stronger form of eventual consistency. It requires two properties:
 
-1. Eventual delivery: Every update made at one non-faulty replica is eventually delivered to every other non-faulty replica.
+1. *Eventual delivery*: Every update made at one non-faulty replica is eventually delivered to every other non-faulty replica.
 
-2. Convergence: Any two replicas that have processed the same set of updates are in the same state, even if they processed those updates in different orders.
+2. *Convergence*: Any two replicas that have processed the same set of updates are in the same state, even if they processed those updates in different orders.
 
-CRDTs are one way to obtain this property; see [[Write Conflicts]].
+CRDTs are one way to obtain this property.
