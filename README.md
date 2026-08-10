@@ -2,7 +2,7 @@
 
 Personal notes and small explanations for algorithms, data structures, and related technical topics.
 
-Notes live in `notes/`. The website publishes files named `index.md`; other Markdown files, such as `TODO.md`, are ignored. Each published note provides only its title and category as YAML frontmatter. Excalidraw diagrams are committed as editable `.excalidraw` sources and referenced directly from Markdown. The website build renders temporary SVG assets for publication.
+Notes live in `notes/`, with one `index.md` file per note. Each note provides its title and category as YAML frontmatter. Add `draft: true` to show a note only in the local development site; `draft` defaults to `false`. Excalidraw diagrams are committed as editable `.excalidraw` sources and referenced directly from Markdown. The website build renders temporary SVG assets for publication.
 
 See [STYLE_GUIDE.md](./STYLE_GUIDE.md) for the note-writing conventions.
 

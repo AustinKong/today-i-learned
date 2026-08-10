@@ -1,3 +1,9 @@
+---
+title: Networking
+category: Networking
+draft: true
+---
+
 # TODO: I havent seen this yet: <https://youtu.be/fIwOd4PToAY?si=7uBZmKdcxe4-H0YN>
 
 Polling vs long polling vs http vs websockets vs sse high level.

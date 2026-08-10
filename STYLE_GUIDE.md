@@ -364,14 +364,14 @@ Use LaTeX rather than inline code for mathematical notation in tables unless a c
 
 Use a visual only when it explains a relationship, topology, state transition, sequence, spatial arrangement, or transformation more clearly than prose. Do not add visuals merely for decoration.
 
-Every informative visual MUST follow this reading flow:
+Every informative visual MUST be introduced before it appears:
 
-1. Introduce the visual with a complete sentence.
+1. Introduce the visual with a complete sentence ending in a colon.
 2. Place the visual immediately after that introduction.
-3. Explain the important takeaway immediately after the visual.
-4. Continue the surrounding discussion.
 
-A reader should never encounter an unexplained visual.
+Add explanatory text after the visual when its important takeaway, consequence, or relationship isn't self-evident. Do not add a post-visual explanation merely to satisfy a template.
+
+A reader should never encounter a visual without an introduction explaining why it appears.
 
 Do not begin a section with a visual before explaining why it exists.
 
@@ -408,7 +408,7 @@ Prefer the format that is easiest to edit and review.
 
 Diagrams SHOULD use short labels, align related elements, follow a clear reading order, use grouping consistently, and avoid decorative complexity.
 
-Do not place a diagram immediately after a heading. First explain what the reader is about to see, then present the diagram, then interpret its important takeaway.
+Do not place a diagram immediately after a heading. First introduce what the reader is about to see with a complete sentence ending in a colon, then present the diagram. Interpret its important takeaway afterward only when that takeaway isn't self-evident.
 
 Text-defined diagrams are especially suitable for request flows, transactions, replication, message sequences, state transitions, and failure scenarios.
 
