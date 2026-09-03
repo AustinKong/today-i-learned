@@ -518,7 +518,9 @@ In general, 2PL performs quite poorly due to its implementation and deadlocks.
 
 #### Predicate Locks
 
-2PL itself doesn't solve write skew; *predicate locks* are needed. A predicate lock is a lock that belongs to all rows matching a search condition (a predicate). Similar rules to 2PL apply:
+Basic row-level 2PL solves the doctors-on-call write skew (the two transactions will deadlock while upgrading their shared locks). However, it doesn't solve the meeting-room booking write skew, predicate locks are needed.
+
+*Predicate locks* extend 2PL to cover this case. A predicate lock belongs to all rows matching a search condition (a predicate), including rows that don't yet exist. Similar rules to 2PL apply:
 
 - If a transaction wants to read rows matching some condition, it must acquire a shared-mode predicate lock on the conditions in the query. If another transaction currently has an exclusive lock on any row matching those conditions, it must wait.
 - If a transaction wants to write rows, it must check whether either the old or new value matches any existing predicate lock. If there is such a predicate lock, then it must wait.

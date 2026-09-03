@@ -158,7 +158,7 @@ A global index is partitioned separately from the primary data. The index can't 
 
 A lookup can then be routed to the index partition containing that term instead of querying every data partition. This requires no scatter/gather.
 
-<!-- TODO: Link to distributed transactions when ready -->
+See [[Distributed Transactions]].
 Global indexes make writes more complicated: updating one document may require updates to several partitions. Keeping the index strongly consistent may require a distributed transaction, so many systems update global indexes asynchronously and expose [[Eventual Consistency|eventual consistency]].
 
 |Aspect|Partitioning by document|Partitioning by term|

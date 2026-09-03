@@ -221,7 +221,7 @@ Use a list for a parallel collection, sequence, ranking, alternatives, or inform
 
 Use `-` for unordered lists. Do not mix unordered marker styles.
 
-Use numbered lists only for procedures, chronological sequences, rankings, meaningful counts, or lists introduced with an exact count.
+Use numbered lists only for procedures, chronological sequences, rankings, meaningful counts, or lists introduced with an exact count. When the introducing prose states an exact number of items, the following list MUST be numbered so that its structure matches that count.
 
 Text introducing a list SHOULD end with a colon.
 
@@ -326,6 +326,10 @@ Use display math when an equation is central, long, aligned, or discussed by sur
 Ordinary Markdown links MUST use descriptive text. Do not use vague text such as `here`, `this page`, `more`, or `link`.
 
 Wikilinks MAY use the canonical title of the linked note and do not need to be rewritten as descriptive prose. Wikilinks SHOULD sit naturally in the surrounding sentence rather than appearing as unexplained standalone references.
+
+When another note defines a term, link the term naturally at its first meaningful occurrence. Do not add a standalone sentence such as "See `[[Network Performance]]` for the definition of round-trip time" when the link can be attached directly to the term.
+
+Wikilinks MUST target a whole note. Do not use a heading fragment such as `[[HTTP#Caching]]`; link to `[[HTTP]]` and identify the relevant section naturally in the surrounding prose when needed.
 
 Bare URLs MUST NOT appear in prose unless the URL itself is the subject.
 
